@@ -12,6 +12,3 @@ venv_*/
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
-
-# Model artifacts (keep code, not binaries)
-*.pkl
