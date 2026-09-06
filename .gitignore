@@ -1,0 +1,14 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+venv/
+venv_*/
+.venv/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
