@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --bg-primary: #07090C;
+  --bg-secondary: #0D1117;
+  --bg-elevated: #151B23;
+  --bg-subtle: #11161D;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --color-forecast: #155EEF;
+  --color-forecast-blue: #60A5FA;
+  --color-teal-med: #1C3F4B;
+  --color-teal-deep: #16434A;
+  --color-cyan: #9DDFF2;
+  --color-mint: #9DF0DA;
+  --color-watch: #F59E0B;
+  --color-high: #F97316;
+  --color-critical: #EF4444;
+  --color-lime: #D3FD50;
+  --text-primary: #F4F3EF;
+  --text-secondary: #A7ADB5;
+  --text-muted: #66707C;
+  --text-disabled: #454C55;
+}
+
+body {
+  background-color: #07090C;
+  color: #F4F3EF;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
+}
+
+/* Tabular numbers for precision instrumentation */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
