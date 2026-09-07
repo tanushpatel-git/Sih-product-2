@@ -1,0 +1,16 @@
+{
+  "name": "medical-ai-chatbot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Privacy-focused medical AI consultation chatbot using RAG + LangChain (no fine-tuning)",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @medchat/web",
+    "dev:api": "npm run dev --workspace @medchat/api",
+    "dev:ai": "cd services/ai && source venv/bin/activate && uvicorn app.main:app --reload --port 8000",
+    "build:web": "npm run build --workspace @medchat/web",
+    "db:seed": "cd database && node seeds/seed.js"
+  }
+}

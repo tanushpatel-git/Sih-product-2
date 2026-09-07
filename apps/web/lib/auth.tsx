@@ -1,0 +1,68 @@
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { useRouter } from "next/navigation";
+import { api, getStoredUser, setStoredUser, setToken, type AuthUser } from "./api";
+
+interface AuthContextValue {
+  user: AuthUser | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (payload: Parameters<typeof api.register>[0]) => Promise<void>;
+  logout: () => void;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(getStoredUser());
+  const router = useRouter();
+
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const res = await api.login(email, password);
+      setToken(res.token);
+      setStoredUser(res.user);
+      setUser(res.user);
+      router.push("/dashboard");
+    },
+    [router]
+  );
+
+  const register = useCallback(
+    async (payload: Parameters<typeof api.register>[0]) => {
+      const res = await api.register(payload);
+      setToken(res.token);
+      setStoredUser(res.user);
+      setUser(res.user);
+      router.push("/dashboard");
+    },
+    [router]
+  );
+
+  const logout = useCallback(() => {
+    setToken(null);
+    setStoredUser(null);
+    setUser(null);
+    router.push("/");
+  }, [router]);
+
+  const value = useMemo(
+    () => ({ user, login, register, logout }),
+    [user, login, register, logout]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

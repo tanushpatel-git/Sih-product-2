@@ -1,0 +1,234 @@
+# General Medicine Reference Guidelines
+
+This document provides general, doctor-approved medical information for common
+conditions seen in a general medicine practice. It is intended as a reference
+for patient consultation only and does not replace individual clinical
+judgment.
+
+---
+
+## Common Cold
+
+The common cold is a mild viral infection of the nose and throat. Symptoms
+typically include sneezing, a runny or blocked nose, a sore throat, mild
+cough, and sometimes a low-grade fever. Symptoms usually peak within 2 to 3
+days and resolve on their own within 7 to 10 days.
+
+Management is supportive: rest, adequate fluid intake, and warm fluids help
+relieve symptoms. Saline nasal drops and throat lozenges provide symptomatic
+relief. Cold symptoms typically do not require antibiotics, because the
+illness is caused by a virus.
+
+A patient with cold symptoms that last longer than 10 days, worsen
+significantly, or are accompanied by a high fever should consult a doctor.
+
+---
+
+## Fever
+
+A fever is a temporary rise in body temperature, most often to 100.4 F (38 C)
+or higher. Fever is a normal immune response to an infection and is usually
+not dangerous by itself. Common causes include viral and bacterial infections.
+
+Mild fever in an otherwise healthy adult can be managed at home with rest and
+fluids. If discomfort is significant, the patient may use fever-reducing
+medication at the lowest effective dose. Fever with a rash, neck stiffness,
+severe headache, confusion, or difficulty breathing requires urgent medical
+evaluation.
+
+For young children and infants, fever should be evaluated more conservatively.
+An infant under 3 months with a fever of 100.4 F (38 C) or higher should be
+evaluated by a doctor promptly.
+
+---
+
+## Headache
+
+Headache is one of the most common complaints in general medicine. Most
+headaches are primary headaches, meaning they are not caused by another
+medical condition.
+
+Tension headaches are the most common type. They present as bilateral,
+pressing or tightening pain of mild to moderate intensity, often felt like a
+band around the head. They are not usually aggravated by routine physical
+activity and are not associated with nausea or vomiting.
+
+Migraine is characterized by recurrent unilateral throbbing headache, lasting
+4 to 72 hours, often accompanied by nausea, sensitivity to light
+(photophobia), and sensitivity to sound (phonophobia). Some people experience
+a visual or sensory aura before the attack begins.
+
+Red flags that warrant urgent evaluation include sudden onset thunderclap
+headache, headache with fever and neck stiffness, new neurological deficit,
+headache in patients with cancer or pregnancy, and headache beginning after
+age 50.
+
+For an acute tension headache, over-the-counter pain relief at the lowest
+effective dose may be used. Patients with frequent tension headaches should
+keep a headache diary, identify triggers, and maintain regular hydration and
+sleep. Chronic headache disorders greater than 15 days per month should be
+reviewed by a doctor.
+
+---
+
+## Hypertension (High Blood Pressure)
+
+Hypertension is defined as persistently elevated blood pressure, generally a
+reading of 130/80 mmHg or higher on repeated measurements. It is often
+asymptomatic, which is why it is sometimes called the silent killer.
+
+Uncontrolled high blood pressure increases the risk of heart attack, stroke,
+kidney damage, and vision problems. Management focuses on lifestyle measures:
+reducing salt intake, maintaining a healthy weight, regular physical
+activity, limiting alcohol, and avoiding tobacco.
+
+Medications used to treat hypertension include ACE inhibitors, angiotensin
+receptor blockers, calcium channel blockers, and diuretics. The choice of
+medication is individualized. A patient with a blood pressure reading above
+180/120 mmHg with symptoms such as severe headache, chest pain, or vision
+change requires urgent care.
+
+---
+
+## Type 2 Diabetes Mellitus
+
+Type 2 diabetes is a chronic condition in which the body becomes resistant to
+insulin or does not produce enough insulin, leading to elevated blood sugar.
+
+Common risk factors include obesity, physical inactivity, family history of
+diabetes, and age above 45. Many patients are asymptomatic initially, which
+is why routine screening is important. Symptoms, when present, may include
+increased thirst, frequent urination, fatigue, and blurred vision.
+
+Management includes weight loss when needed, a balanced diet with controlled
+carbohydrates, regular physical activity, and blood sugar monitoring.
+Medication such as metformin is commonly the first-line oral agent.
+Complications of poorly controlled diabetes include damage to the eyes,
+kidneys, and nerves, and an increased risk of cardiovascular disease.
+
+---
+
+## Upper Respiratory Tract Infection
+
+Upper respiratory tract infections include infections of the nose, throat,
+sinuses, and larynx. Most are viral and self-limited. Symptoms can include
+sore throat, cough, nasal congestion, and sneezing.
+
+Rest, fluids, and humidified air help with recovery. Antibiotics are reserved
+for bacterial infections, which are suggested by persistent high fever,
+purulent discharge, or clinical features such as strep throat confirmed by
+testing.
+
+---
+
+## Acute Bronchitis
+
+Acute bronchitis is inflammation of the bronchial tubes, usually caused by a
+viral infection. The hallmark symptom is a cough that may produce mucus.
+Symptoms may last up to 3 weeks.
+
+Management is supportive: fluids, rest, and breathing of moist air. Cough
+suppressants may be used for bothersome cough. Antibiotics are generally not
+indicated for acute bronchitis in otherwise healthy patients.
+
+---
+
+## Gastroenteritis (Stomach Flu)
+
+Gastroenteritis is inflammation of the stomach and intestines, most commonly
+caused by a virus or contaminated food. It typically presents with diarrhea,
+vomiting, abdominal cramps, and sometimes fever.
+
+The mainstay of treatment is oral rehydration to replace lost fluids and
+electrolytes. This can be done with oral rehydration solution or clear
+fluids. Most cases resolve within a few days. Seek medical attention for
+signs of dehydration, blood in the stool, high fever, or symptoms lasting
+more than 3 days in an adult.
+
+---
+
+## Constipation
+
+Constipation is defined as fewer than three bowel movements per week, often
+accompanied by hard, dry stools or difficulty passing stool. Common causes
+include low fiber intake, inadequate fluid intake, inactivity, and certain
+medications.
+
+Management begins with lifestyle measures: increasing dietary fiber (fruits,
+vegetables, whole grains), drinking adequate fluids, and regular exercise. A
+patient who does not improve with lifestyle measures may use a gentle laxative
+at the lowest effective dose for a short duration.
+
+Red flags requiring evaluation include blood in the stool, unintentional
+weight loss, persistent abdominal pain, and a change in bowel habits after
+the age of 50.
+
+---
+
+## Insomnia
+
+Insomnia is difficulty falling asleep, staying asleep, or waking too early,
+despite adequate opportunity for sleep, with daytime consequences such as
+fatigue or poor concentration.
+
+Behavioral measures are the first-line treatment: a consistent sleep schedule,
+a dark and quiet bedroom, avoiding caffeine in the afternoon and evening,
+limiting screens before bed, and avoiding daytime naps.
+
+Sedative medication should be used only for a short duration and under a
+doctor's supervision. Persistent insomnia with mood symptoms or snoring with
+breathing pauses should be evaluated by a doctor.
+
+---
+
+## Seasonal Allergies (Allergic Rhinitis)
+
+Allergic rhinitis occurs when the immune system overreacts to airborne
+allergens such as pollen, dust mites, or animal dander. Symptoms include
+sneezing, a runny or itchy nose, itchy eyes, and nasal congestion.
+
+Management includes avoiding known triggers, using a saline nasal rinse, and
+antihistamine medication at the lowest effective dose. Intranasal steroid
+sprays are effective for more persistent symptoms. Severe symptoms with
+wheezing or anaphylaxis require urgent medical attention.
+
+---
+
+## Lifestyle and Preventive Care
+
+Routine preventive care is an important part of general medicine. This
+includes periodic blood pressure checks, blood sugar screening in adults,
+cholesterol testing, and age-appropriate cancer screening.
+
+A balanced diet rich in fruits, vegetables, whole grains, and lean protein,
+combined with at least 150 minutes of moderate physical activity per week, is
+recommended for most adults. Adequate sleep, stress management, limiting
+alcohol, and avoiding tobacco are all part of a healthy lifestyle.
+
+Patients should maintain an updated immunization record and discuss
+vaccination schedules with their doctor.
+
+---
+
+## When to Seek Urgent Care
+
+Patients should seek urgent medical attention for the following warning
+signs:
+
+- Severe chest pain or pressure
+- Difficulty breathing or shortness of breath
+- Sudden weakness or numbness on one side of the body
+- Difficulty speaking or confusion
+- Sudden severe headache
+- Loss of consciousness or fainting
+- Severe bleeding that does not stop
+- Persistent vomiting with inability to keep fluids down
+- Signs of dehydration: extreme thirst, dark urine, or dizziness
+- Blood in vomit, stool, or urine
+- A high fever that does not respond to medication
+
+---
+
+This document is a general medical reference. It is not a substitute for
+individual evaluation. Patients with persistent, severe, or worsening symptoms
+should consult their doctor.
