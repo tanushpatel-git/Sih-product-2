@@ -1,0 +1,725 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Activity,
+  ArrowRight,
+  CalendarDays,
+  Check,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  Phone,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
+
+export function RegisterPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreed, setAgreed] = useState(false);
+
+  const [form, setForm] = useState({
+    fullName: "",
+    dateOfBirth: "",
+    gender: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const updateField = (
+    field: keyof typeof form,
+    value: string
+  ) => {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (form.password !== form.confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    if (!agreed) {
+      alert("Please accept the terms to continue.");
+      return;
+    }
+
+    console.log({
+      ...form,
+      agreed,
+    });
+  };
+
+  return (
+    <main className="min-h-screen overflow-hidden bg-[#f7f9f8] text-[#17201d]">
+      <div className="relative min-h-screen">
+        {/* Ambient background */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -left-40 -top-40 h-[560px] w-[560px] rounded-full bg-blue-100/50 blur-[120px]" />
+
+          <div className="absolute -bottom-40 -right-32 h-[520px] w-[520px] rounded-full bg-emerald-100/40 blur-[120px]" />
+
+          <div
+            className="absolute inset-0 opacity-[0.035]"
+            style={{
+              backgroundImage:
+                "linear-gradient(#17201d 1px, transparent 1px), linear-gradient(90deg, #17201d 1px, transparent 1px)",
+              backgroundSize: "64px 64px",
+            }}
+          />
+        </div>
+
+        {/* Header */}
+        <header className="relative z-20 flex items-center justify-between px-6 py-6 sm:px-10 lg:px-14">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white shadow-sm">
+              <Activity size={18} strokeWidth={2.2} />
+            </div>
+
+            <div>
+              <div className="text-[15px] font-semibold tracking-[-0.02em]">
+                NEXUS
+              </div>
+
+              <div className="hidden text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581] sm:block">
+                Healthcare Intelligence
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-full border border-[#dfe5e2] bg-white/70 px-3 py-2 backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+
+            <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-[#6d7773]">
+              Patient Access
+            </span>
+          </div>
+        </header>
+
+        {/* Main */}
+        <section className="relative z-10 mx-auto flex min-h-[calc(100vh-90px)] max-w-[1400px] items-center px-6 pb-12 pt-4 sm:px-10 lg:px-14">
+          <div className="grid w-full grid-cols-1 items-center gap-16 lg:grid-cols-[0.9fr_1.1fr] lg:gap-24">
+            {/* Left editorial content */}
+            <motion.div
+              initial={{ opacity: 0, x: -25 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                duration: 0.7,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="relative"
+            >
+              <div className="mb-8 flex items-center gap-3">
+                <div className="h-px w-10 bg-[#94a09b]" />
+
+                <span className="text-[10px] font-medium uppercase tracking-[0.24em] text-[#737e79]">
+                  Patient onboarding
+                </span>
+              </div>
+
+              <h1 className="max-w-[650px] text-[clamp(3.5rem,7vw,6.8rem)] font-medium leading-[0.88] tracking-[-0.075em]">
+                Your health.
+                <br />
+                <span className="text-[#68736f]">
+                  Understood.
+                </span>
+              </h1>
+
+              <p className="mt-8 max-w-[500px] text-base leading-7 text-[#69736f] sm:text-lg">
+                Create your NEXUS patient profile to access personalized
+                clinical intelligence, health insights, and connected
+                healthcare services.
+              </p>
+
+              {/* Patient flow */}
+              <div className="mt-12 max-w-[520px]">
+                <div className="mb-5 flex items-center justify-between">
+                  <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#89928e]">
+                    Getting started
+                  </span>
+
+                  <span className="font-mono text-[9px] text-[#a0aaa6]">
+                    PATIENT / 01
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    {
+                      number: "01",
+                      title: "Create your profile",
+                      description: "Basic information and secure access",
+                    },
+                    {
+                      number: "02",
+                      title: "Build your health profile",
+                      description: "Clinical information when you're ready",
+                    },
+                    {
+                      number: "03",
+                      title: "Access your insights",
+                      description: "Understand your health signals",
+                    },
+                  ].map((item) => (
+                    <div
+                      key={item.number}
+                      className="flex items-center gap-4"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#dce3df] bg-white/70 font-mono text-[9px] text-[#7c8782]">
+                        {item.number}
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-[#35403c]">
+                          {item.title}
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-[#929b97]">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Security statement */}
+              <div className="mt-12 flex items-center gap-2">
+                <ShieldCheck
+                  size={15}
+                  strokeWidth={1.7}
+                  className="text-emerald-600"
+                />
+
+                <span className="text-[9px] uppercase tracking-[0.14em] text-[#89938f]">
+                  Secure patient workspace
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Registration panel */}
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.7,
+                delay: 0.1,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="relative mx-auto w-full max-w-[560px]"
+            >
+              {/* Technical coordinates */}
+              <div className="absolute -right-1 -top-8 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:block">
+                PATIENT REGISTRATION
+                <br />
+                NXS / 001
+              </div>
+
+              <div className="rounded-[30px] border border-[#dfe5e2] bg-white/80 p-7 shadow-[0_30px_100px_rgba(23,32,29,0.08)] backdrop-blur-2xl sm:p-9">
+                {/* Heading */}
+                <div className="mb-8">
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f0f4f2] text-[#27332f]">
+                    <UserRound size={19} strokeWidth={1.8} />
+                  </div>
+
+                  <p className="mb-2 text-[9px] font-semibold uppercase tracking-[0.22em] text-[#8a9590]">
+                    Patient account
+                  </p>
+
+                  <h2 className="text-3xl font-medium tracking-[-0.045em]">
+                    Create your account.
+                  </h2>
+
+                  <p className="mt-2 text-sm leading-6 text-[#7b8581]">
+                    Start with the basics. You can complete your clinical
+                    profile later.
+                  </p>
+                </div>
+
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-5"
+                >
+                  {/* Name */}
+                  <div>
+                    <label
+                      htmlFor="fullName"
+                      className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                    >
+                      Full name
+                    </label>
+
+                    <div className="relative">
+                      <UserRound
+                        size={16}
+                        strokeWidth={1.7}
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                      />
+
+                      <input
+                        id="fullName"
+                        type="text"
+                        value={form.fullName}
+                        onChange={(event) =>
+                          updateField(
+                            "fullName",
+                            event.target.value
+                          )
+                        }
+                        placeholder="Enter your full name"
+                        autoComplete="name"
+                        required
+                        className="
+                          h-13 w-full rounded-2xl
+                          border border-[#dfe5e2]
+                          bg-[#f9faf9]
+                          pl-12 pr-4
+                          text-sm
+                          outline-none
+                          transition-all
+                          placeholder:text-[#a4aca8]
+                          focus:border-[#aab5b0]
+                          focus:bg-white
+                          focus:ring-4
+                          focus:ring-[#17201d]/[0.035]
+                        "
+                      />
+                    </div>
+                  </div>
+
+                  {/* DOB + Gender */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="dateOfBirth"
+                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                      >
+                        Date of birth
+                      </label>
+
+                      <div className="relative">
+                        <CalendarDays
+                          size={16}
+                          strokeWidth={1.7}
+                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                        />
+
+                        <input
+                          id="dateOfBirth"
+                          type="date"
+                          value={form.dateOfBirth}
+                          onChange={(event) =>
+                            updateField(
+                              "dateOfBirth",
+                              event.target.value
+                            )
+                          }
+                          required
+                          className="
+                            h-13 w-full rounded-2xl
+                            border border-[#dfe5e2]
+                            bg-[#f9faf9]
+                            pl-12 pr-3
+                            text-sm text-[#35403c]
+                            outline-none
+                            transition-all
+                            focus:border-[#aab5b0]
+                            focus:bg-white
+                            focus:ring-4
+                            focus:ring-[#17201d]/[0.035]
+                          "
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="gender"
+                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                      >
+                        Gender
+                      </label>
+
+                      <select
+                        id="gender"
+                        value={form.gender}
+                        onChange={(event) =>
+                          updateField(
+                            "gender",
+                            event.target.value
+                          )
+                        }
+                        required
+                        className="
+                          h-13 w-full appearance-none rounded-2xl
+                          border border-[#dfe5e2]
+                          bg-[#f9faf9]
+                          px-4
+                          text-sm text-[#35403c]
+                          outline-none
+                          transition-all
+                          focus:border-[#aab5b0]
+                          focus:bg-white
+                          focus:ring-4
+                          focus:ring-[#17201d]/[0.035]
+                        "
+                      >
+                        <option value="" disabled>
+                          Select
+                        </option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                        <option value="prefer-not-to-say">
+                          Prefer not to say
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Email + Phone */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor="email"
+                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                      >
+                        Email
+                      </label>
+
+                      <div className="relative">
+                        <Mail
+                          size={16}
+                          strokeWidth={1.7}
+                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                        />
+
+                        <input
+                          id="email"
+                          type="email"
+                          value={form.email}
+                          onChange={(event) =>
+                            updateField(
+                              "email",
+                              event.target.value
+                            )
+                          }
+                          placeholder="you@email.com"
+                          autoComplete="email"
+                          required
+                          className="
+                            h-13 w-full rounded-2xl
+                            border border-[#dfe5e2]
+                            bg-[#f9faf9]
+                            pl-12 pr-3
+                            text-sm
+                            outline-none
+                            transition-all
+                            placeholder:text-[#a4aca8]
+                            focus:border-[#aab5b0]
+                            focus:bg-white
+                            focus:ring-4
+                            focus:ring-[#17201d]/[0.035]
+                          "
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="phone"
+                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                      >
+                        Phone
+                      </label>
+
+                      <div className="relative">
+                        <Phone
+                          size={16}
+                          strokeWidth={1.7}
+                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                        />
+
+                        <input
+                          id="phone"
+                          type="tel"
+                          value={form.phone}
+                          onChange={(event) =>
+                            updateField(
+                              "phone",
+                              event.target.value
+                            )
+                          }
+                          placeholder="+91 98765 43210"
+                          autoComplete="tel"
+                          required
+                          className="
+                            h-13 w-full rounded-2xl
+                            border border-[#dfe5e2]
+                            bg-[#f9faf9]
+                            pl-12 pr-3
+                            text-sm
+                            outline-none
+                            transition-all
+                            placeholder:text-[#a4aca8]
+                            focus:border-[#aab5b0]
+                            focus:bg-white
+                            focus:ring-4
+                            focus:ring-[#17201d]/[0.035]
+                          "
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                    >
+                      Password
+                    </label>
+
+                    <div className="relative">
+                      <LockKeyhole
+                        size={16}
+                        strokeWidth={1.7}
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                      />
+
+                      <input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={form.password}
+                        onChange={(event) =>
+                          updateField(
+                            "password",
+                            event.target.value
+                          )
+                        }
+                        placeholder="Create a secure password"
+                        autoComplete="new-password"
+                        required
+                        minLength={8}
+                        className="
+                          h-13 w-full rounded-2xl
+                          border border-[#dfe5e2]
+                          bg-[#f9faf9]
+                          pl-12 pr-12
+                          text-sm
+                          outline-none
+                          transition-all
+                          placeholder:text-[#a4aca8]
+                          focus:border-[#aab5b0]
+                          focus:bg-white
+                          focus:ring-4
+                          focus:ring-[#17201d]/[0.035]
+                        "
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowPassword((value) => !value)
+                        }
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9aa49f] hover:text-[#35413d]"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={17} strokeWidth={1.7} />
+                        ) : (
+                          <Eye size={17} strokeWidth={1.7} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Confirm password */}
+                  <div>
+                    <label
+                      htmlFor="confirmPassword"
+                      className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                    >
+                      Confirm password
+                    </label>
+
+                    <div className="relative">
+                      <LockKeyhole
+                        size={16}
+                        strokeWidth={1.7}
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                      />
+
+                      <input
+                        id="confirmPassword"
+                        type={
+                          showConfirmPassword
+                            ? "text"
+                            : "password"
+                        }
+                        value={form.confirmPassword}
+                        onChange={(event) =>
+                          updateField(
+                            "confirmPassword",
+                            event.target.value
+                          )
+                        }
+                        placeholder="Repeat your password"
+                        autoComplete="new-password"
+                        required
+                        className="
+                          h-13 w-full rounded-2xl
+                          border border-[#dfe5e2]
+                          bg-[#f9faf9]
+                          pl-12 pr-12
+                          text-sm
+                          outline-none
+                          transition-all
+                          placeholder:text-[#a4aca8]
+                          focus:border-[#aab5b0]
+                          focus:bg-white
+                          focus:ring-4
+                          focus:ring-[#17201d]/[0.035]
+                        "
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(
+                            (value) => !value
+                          )
+                        }
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9aa49f] hover:text-[#35413d]"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={17} strokeWidth={1.7} />
+                        ) : (
+                          <Eye size={17} strokeWidth={1.7} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Terms */}
+                  <div className="flex items-start gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setAgreed((value) => !value)}
+                      aria-label="Accept terms"
+                      className={`
+                        mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all
+                        ${
+                          agreed
+                            ? "border-[#17201d] bg-[#17201d] text-white"
+                            : "border-[#cbd4d0] bg-white"
+                        }
+                      `}
+                    >
+                      {agreed && (
+                        <Check
+                          size={11}
+                          strokeWidth={2.5}
+                        />
+                      )}
+                    </button>
+
+                    <p className="text-[10px] leading-5 text-[#89938f]">
+                      I agree to the NEXUS{" "}
+                      <button
+                        type="button"
+                        className="font-medium text-[#56615d] underline underline-offset-2"
+                      >
+                        Terms of Service
+                      </button>{" "}
+                      and{" "}
+                      <button
+                        type="button"
+                        className="font-medium text-[#56615d] underline underline-offset-2"
+                      >
+                        Privacy Policy
+                      </button>
+                      .
+                    </p>
+                  </div>
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    className="
+                      group flex h-14 w-full
+                      items-center justify-center gap-3
+                      rounded-2xl
+                      bg-[#17201d]
+                      text-sm font-medium text-white
+                      shadow-[0_12px_30px_rgba(23,32,29,0.16)]
+                      transition-all duration-300
+                      hover:-translate-y-0.5
+                      hover:bg-[#26332e]
+                      hover:shadow-[0_18px_40px_rgba(23,32,29,0.2)]
+                      active:translate-y-0
+                    "
+                  >
+                    <span>Create patient account</span>
+
+                    <ArrowRight
+                      size={16}
+                      strokeWidth={1.8}
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    />
+                  </button>
+                </form>
+
+                {/* Security */}
+                <div className="mt-7 flex items-center justify-center gap-2">
+                  <ShieldCheck
+                    size={14}
+                    strokeWidth={1.7}
+                    className="text-emerald-600"
+                  />
+
+                  <span className="text-[9px] text-[#89938f]">
+                    Your account is protected with secure authentication
+                  </span>
+                </div>
+              </div>
+
+              {/* Login */}
+              <p className="mt-6 text-center text-xs text-[#89938f]">
+                Already have an account?{" "}
+                <Link
+                  href="/patient/login"
+                  className="font-medium text-[#35413d] underline decoration-[#c5ceca] underline-offset-4 transition-colors hover:text-[#17201d]"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <div className="pointer-events-none absolute bottom-6 left-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:left-10 lg:left-14 lg:block">
+          NEXUS / PATIENT / REGISTRATION
+        </div>
+
+        <div className="pointer-events-none absolute bottom-6 right-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:right-10 lg:right-14 lg:block">
+          SECURE ACCESS · 01
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default RegisterPage;
