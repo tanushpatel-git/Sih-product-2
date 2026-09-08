@@ -1,18 +1,16 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 
 export interface OrganNode {
   id: string;
   name: string;
   status: string;
   statusType: "available" | "normal" | "not_assessed";
-  x: number; // 3D coordinates relative to body origin (0, 0, 0)
-  y: number;
-  z: number;
   icon: string;
-  color: string;
-  glowColor: string;
+  iconBgClass: string;
+  iconColorClass: string;
+  statusColorClass: string;
   modelKey?: string;
 }
 
@@ -22,12 +20,10 @@ const ORGANS: OrganNode[] = [
     name: "Brain",
     status: "Healthy",
     statusType: "available",
-    x: 0,
-    y: -145,
-    z: 2,
     icon: "🧠",
-    color: "#0284c7",
-    glowColor: "rgba(56, 189, 248, 0.9)",
+    iconBgClass: "bg-blue-50/90 border border-blue-100",
+    iconColorClass: "text-blue-600",
+    statusColorClass: "text-emerald-600",
     modelKey: "stroke",
   },
   {
@@ -35,24 +31,20 @@ const ORGANS: OrganNode[] = [
     name: "Lungs",
     status: "Healthy",
     statusType: "not_assessed",
-    x: -16,
-    y: -78,
-    z: 4,
     icon: "🫁",
-    color: "#059669",
-    glowColor: "rgba(52, 211, 153, 0.9)",
+    iconBgClass: "bg-sky-50/90 border border-sky-100",
+    iconColorClass: "text-sky-600",
+    statusColorClass: "text-emerald-600",
   },
   {
     id: "heart",
     name: "Heart",
     status: "Normal",
     statusType: "available",
-    x: 14,
-    y: -70,
-    z: 14,
     icon: "❤️",
-    color: "#e11d48",
-    glowColor: "rgba(244, 63, 94, 0.95)",
+    iconBgClass: "bg-rose-50/90 border border-rose-100",
+    iconColorClass: "text-rose-600",
+    statusColorClass: "text-emerald-600",
     modelKey: "heartDisease",
   },
   {
@@ -60,12 +52,10 @@ const ORGANS: OrganNode[] = [
     name: "Liver",
     status: "Normal",
     statusType: "available",
-    x: -15,
-    y: -28,
-    z: 10,
     icon: "🫀",
-    color: "#d97706",
-    glowColor: "rgba(251, 191, 36, 0.9)",
+    iconBgClass: "bg-emerald-50/90 border border-emerald-100",
+    iconColorClass: "text-emerald-600",
+    statusColorClass: "text-emerald-600",
     modelKey: "liverDisease",
   },
   {
@@ -73,12 +63,10 @@ const ORGANS: OrganNode[] = [
     name: "Kidney",
     status: "Normal",
     statusType: "available",
-    x: 15,
-    y: -12,
-    z: -12,
     icon: "🩺",
-    color: "#2563eb",
-    glowColor: "rgba(96, 165, 250, 0.9)",
+    iconBgClass: "bg-indigo-50/90 border border-indigo-100",
+    iconColorClass: "text-indigo-600",
+    statusColorClass: "text-emerald-600",
     modelKey: "kidneyDisease",
   },
   {
@@ -86,80 +74,12 @@ const ORGANS: OrganNode[] = [
     name: "Gut",
     status: "Normal",
     statusType: "not_assessed",
-    x: 0,
-    y: 22,
-    z: 8,
     icon: "🔬",
-    color: "#7c3aed",
-    glowColor: "rgba(192, 132, 252, 0.9)",
+    iconBgClass: "bg-purple-50/90 border border-purple-100",
+    iconColorClass: "text-purple-600",
+    statusColorClass: "text-emerald-600",
   },
 ];
-
-// 3D Ring structure representing anatomical cross-sections
-interface AnatomicalRing {
-  y: number;
-  radiusX: number;
-  radiusZ: number;
-  offsetX?: number;
-}
-
-function generate3DBodyMesh(): AnatomicalRing[] {
-  const rings: AnatomicalRing[] = [];
-
-  // Head (Top to Chin: y = -175 to -130)
-  for (let y = -175; y <= -130; y += 3) {
-    const progress = (y + 175) / 45; // 0 to 1
-    const r = Math.sin(progress * Math.PI) * 18;
-    rings.push({ y, radiusX: r, radiusZ: r * 0.9 });
-  }
-
-  // Neck (y = -130 to -112)
-  for (let y = -128; y <= -112; y += 3) {
-    rings.push({ y, radiusX: 9, radiusZ: 8 });
-  }
-
-  // Shoulders & Chest (y = -110 to -55)
-  for (let y = -110; y <= -55; y += 3.5) {
-    const progress = (y + 110) / 55;
-    let rx = 18 + Math.sin(progress * Math.PI) * 14;
-    let rz = 11 + Math.sin(progress * Math.PI) * 6;
-    if (progress < 0.3) {
-      // Shoulder flare
-      rx = 20 + progress * 40;
-    }
-    rings.push({ y, radiusX: rx, radiusZ: rz });
-  }
-
-  // Waist & Abdomen (y = -55 to 5)
-  for (let y = -52; y <= 5; y += 3.5) {
-    const progress = (y + 52) / 57;
-    const rx = 24 - Math.sin(progress * Math.PI) * 6;
-    const rz = 15 - Math.sin(progress * Math.PI) * 4;
-    rings.push({ y, radiusX: rx, radiusZ: rz });
-  }
-
-  // Hips & Pelvis (y = 5 to 45)
-  for (let y = 8; y <= 45; y += 3.5) {
-    const progress = (y - 8) / 37;
-    const rx = 20 + Math.sin(progress * Math.PI) * 7;
-    const rz = 13 + Math.sin(progress * Math.PI) * 4;
-    rings.push({ y, radiusX: rx, radiusZ: rz });
-  }
-
-  // Dual Thighs & Legs (y = 48 to 175)
-  for (let y = 48; y <= 175; y += 4) {
-    const legProgress = (y - 48) / 127;
-    const rx = 10 - legProgress * 4.5;
-    const rz = 9 - legProgress * 4;
-
-    // Left leg
-    rings.push({ y, radiusX: rx, radiusZ: rz, offsetX: -11 + legProgress * 3 });
-    // Right leg
-    rings.push({ y, radiusX: rx, radiusZ: rz, offsetX: 11 - legProgress * 3 });
-  }
-
-  return rings;
-}
 
 interface HumanBody3DProps {
   onSelectOrgan?: (organ: OrganNode) => void;
@@ -170,27 +90,13 @@ export default function HumanBody3D({
   onSelectOrgan,
   selectedOrganId,
 }: HumanBody3DProps) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [rotationY, setRotationY] = useState(0.3);
-  const [rotationX, setRotationX] = useState(-0.05);
-  const [zoom, setZoom] = useState(1.1);
+  const [rotationY, setRotationY] = useState(0);
+  const [rotationX, setRotationX] = useState(0);
+  const [zoom, setZoom] = useState(1.0);
   const [isDragging, setIsDragging] = useState(false);
   const [hoveredOrgan, setHoveredOrgan] = useState<string | null>(null);
   const lastMousePos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const animFrameId = useRef<number | null>(null);
 
-  // Precomputed 3D Body Mesh
-  const bodyMesh = useRef<AnatomicalRing[]>([]);
-  useEffect(() => {
-    bodyMesh.current = generate3DBodyMesh();
-  }, []);
-
-  // Screen Projected Organ Positions for HTML Floating Cards
-  const [organScreenPositions, setOrganScreenPositions] = useState<
-    Record<string, { x: number; y: number; z: number }>
-  >({});
-
-  // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     lastMousePos.current = { x: e.clientX, y: e.clientY };
@@ -201,11 +107,8 @@ export default function HumanBody3D({
       if (!isDragging) return;
       const dx = e.clientX - lastMousePos.current.x;
       const dy = e.clientY - lastMousePos.current.y;
-
-      setRotationY((prev) => prev + dx * 0.01);
-      setRotationX((prev) =>
-        Math.max(-0.4, Math.min(0.4, prev + dy * 0.008))
-      );
+      setRotationY((prev) => prev + dx * 0.4);
+      setRotationX((prev) => Math.max(-15, Math.min(15, prev + dy * 0.2)));
       lastMousePos.current = { x: e.clientX, y: e.clientY };
     },
     [isDragging]
@@ -215,295 +118,10 @@ export default function HumanBody3D({
     setIsDragging(false);
   };
 
-  // Zoom control
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    setZoom((prev) => Math.max(0.8, Math.min(1.4, prev - e.deltaY * 0.001)));
+    setZoom((prev) => Math.max(0.85, Math.min(1.25, prev - e.deltaY * 0.001)));
   };
-
-  // Render Engine (True 3D Matrix Projection)
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let localRotationY = rotationY;
-
-    const render = () => {
-      // Auto-rotation when idle
-      if (!isDragging) {
-        localRotationY += 0.004;
-      }
-
-      const width = canvas.width;
-      const height = canvas.height;
-      ctx.clearRect(0, 0, width, height);
-
-      const centerX = width / 2;
-      const centerY = height / 2 + 10;
-      const scale = 1.25 * zoom;
-
-      // 3D Point Matrix Projection Function
-      const project = (x: number, y: number, z: number) => {
-        // Rotate Y
-        const cosY = Math.cos(localRotationY);
-        const sinY = Math.sin(localRotationY);
-        const x1 = x * cosY + z * sinY;
-        const z1 = -x * sinY + z * cosY;
-
-        // Rotate X
-        const cosX = Math.cos(rotationX);
-        const sinX = Math.sin(rotationX);
-        const y2 = y * cosX - z1 * sinX;
-        const z2 = y * sinX + z1 * cosX;
-
-        // Camera Perspective
-        const cameraDist = 380;
-        const perspective = cameraDist / (cameraDist - z2);
-
-        return {
-          px: centerX + x1 * scale * perspective,
-          py: centerY + y2 * scale * perspective,
-          pz: z2,
-          perspective,
-        };
-      };
-
-      // ── 1. Pedestal Base & Concentric Holographic Rings ──────────
-      const pedestalY = 175;
-      const pedestalCenter = project(0, pedestalY, 0);
-
-      // Radial Ambient Light Pool
-      const baseGrad = ctx.createRadialGradient(
-        pedestalCenter.px,
-        pedestalCenter.py,
-        5,
-        pedestalCenter.px,
-        pedestalCenter.py,
-        130 * scale
-      );
-      baseGrad.addColorStop(0, "rgba(56, 189, 248, 0.45)");
-      baseGrad.addColorStop(0.4, "rgba(14, 165, 233, 0.2)");
-      baseGrad.addColorStop(0.8, "rgba(99, 102, 241, 0.06)");
-      baseGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-      ctx.fillStyle = baseGrad;
-      ctx.beginPath();
-      ctx.ellipse(
-        pedestalCenter.px,
-        pedestalCenter.py,
-        130 * scale,
-        38 * scale,
-        0,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-
-      // Concentric Rings
-      [115, 90, 65, 42].forEach((radius, idx) => {
-        ctx.strokeStyle =
-          idx === 0
-            ? "rgba(56, 189, 248, 0.8)"
-            : idx === 1
-            ? "rgba(14, 165, 233, 0.5)"
-            : "rgba(125, 211, 252, 0.35)";
-        ctx.lineWidth = idx === 0 ? 2.2 : 1.2;
-        ctx.beginPath();
-        ctx.ellipse(
-          pedestalCenter.px,
-          pedestalCenter.py,
-          radius * scale,
-          radius * 0.29 * scale,
-          0,
-          0,
-          Math.PI * 2
-        );
-        ctx.stroke();
-      });
-
-      // Pedestal Vertical Hologram Light Beam
-      const lightBeam = ctx.createLinearGradient(
-        pedestalCenter.px,
-        pedestalCenter.py,
-        pedestalCenter.px,
-        pedestalCenter.py - 330 * scale
-      );
-      lightBeam.addColorStop(0, "rgba(56, 189, 248, 0.2)");
-      lightBeam.addColorStop(0.6, "rgba(125, 211, 252, 0.06)");
-      lightBeam.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-      ctx.fillStyle = lightBeam;
-      ctx.beginPath();
-      ctx.moveTo(pedestalCenter.px - 80 * scale, pedestalCenter.py);
-      ctx.lineTo(pedestalCenter.px - 55 * scale, pedestalCenter.py - 330 * scale);
-      ctx.lineTo(pedestalCenter.px + 55 * scale, pedestalCenter.py - 330 * scale);
-      ctx.lineTo(pedestalCenter.px + 80 * scale, pedestalCenter.py);
-      ctx.closePath();
-      ctx.fill();
-
-      // ── 2. Render True 3D Anatomical Body Contour Rings ──────────
-      const mesh = bodyMesh.current;
-
-      // Draw horizontal cross-sectional 3D rings forming the full human body volume
-      mesh.forEach((ring) => {
-        const centerOffset = ring.offsetX || 0;
-        const ptsCount = 24;
-        const ringPoints: { px: number; py: number; pz: number }[] = [];
-
-        for (let i = 0; i < ptsCount; i++) {
-          const angle = (i / ptsCount) * Math.PI * 2;
-          const x = centerOffset + Math.cos(angle) * ring.radiusX;
-          const z = Math.sin(angle) * ring.radiusZ;
-          ringPoints.push(project(x, ring.y, z));
-        }
-
-        // Draw ring outline
-        ctx.beginPath();
-        ctx.moveTo(ringPoints[0].px, ringPoints[0].py);
-        for (let i = 1; i < ringPoints.length; i++) {
-          ctx.lineTo(ringPoints[i].px, ringPoints[i].py);
-        }
-        ctx.closePath();
-
-        // Holographic fill & stroke
-        const avgZ = ringPoints.reduce((acc, p) => acc + p.pz, 0) / ptsCount;
-        const alpha = Math.max(0.12, Math.min(0.75, (avgZ + 80) / 160));
-
-        ctx.fillStyle = `rgba(56, 189, 248, ${alpha * 0.12})`;
-        ctx.fill();
-        ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.65})`;
-        ctx.lineWidth = 1.1;
-        ctx.stroke();
-      });
-
-      // Draw vertical body seam lines for 3D depth curves
-      for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-        ctx.beginPath();
-        let started = false;
-        mesh.forEach((ring) => {
-          if (ring.offsetX) return; // Skip dual limbs for central seams
-          const x = Math.cos(angle) * ring.radiusX;
-          const z = Math.sin(angle) * ring.radiusZ;
-          const p = project(x, ring.y, z);
-          if (!started) {
-            ctx.moveTo(p.px, p.py);
-            started = true;
-          } else {
-            ctx.lineTo(p.px, p.py);
-          }
-        });
-        ctx.strokeStyle = "rgba(125, 211, 252, 0.25)";
-        ctx.lineWidth = 0.9;
-        ctx.stroke();
-      }
-
-      // ── 3. Orbital Holographic Rings Around Torso ────────────────
-      const now = Date.now() * 0.002;
-      [ -80, -70, -60 ].forEach((orbitY, idx) => {
-        const ringRadius = 55 + idx * 8;
-        const orbitPts: { px: number; py: number; pz: number }[] = [];
-        for (let a = 0; a < Math.PI * 2; a += 0.2) {
-          const x = Math.cos(a + now * (idx % 2 === 0 ? 1 : -1)) * ringRadius;
-          const z = Math.sin(a + now * (idx % 2 === 0 ? 1 : -1)) * ringRadius * 0.4;
-          orbitPts.push(project(x, orbitY, z));
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(orbitPts[0].px, orbitPts[0].py);
-        for (let i = 1; i < orbitPts.length; i++) {
-          ctx.lineTo(orbitPts[i].px, orbitPts[i].py);
-        }
-        ctx.closePath();
-        ctx.strokeStyle = idx === 0 ? "rgba(56, 189, 248, 0.65)" : "rgba(125, 211, 252, 0.35)";
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-      });
-
-      // ── 4. True 3D Organs Projection & Depth Sorting ──────────────
-      const organCoords: Record<string, { x: number; y: number; z: number }> = {};
-
-      // Sort organs by 3D depth (pz) so back organs draw behind front organs
-      const projectedOrgans = ORGANS.map((organ) => {
-        const p = project(organ.x, organ.y, organ.z);
-        organCoords[organ.id] = { x: p.px, y: p.py, z: p.pz };
-        return { organ, proj: p };
-      }).sort((a, b) => a.proj.pz - b.proj.pz);
-
-      projectedOrgans.forEach(({ organ, proj }) => {
-        const isHovered = hoveredOrgan === organ.id;
-        const isSelected = selectedOrganId === organ.id;
-        const pulse = Math.sin(now * 2 + organ.y) * 0.25 + 1.0;
-
-        // Radiant organ corona gradient
-        const corona = ctx.createRadialGradient(
-          proj.px,
-          proj.py,
-          2,
-          proj.px,
-          proj.py,
-          (isHovered || isSelected ? 28 : 18) * pulse
-        );
-        corona.addColorStop(0, organ.glowColor);
-        corona.addColorStop(0.5, organ.glowColor.replace("0.9", "0.35"));
-        corona.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-        ctx.fillStyle = corona;
-        ctx.beginPath();
-        ctx.arc(
-          proj.px,
-          proj.py,
-          (isHovered || isSelected ? 28 : 18) * pulse,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-
-        // Organ core node
-        ctx.fillStyle = isSelected
-          ? "#2563eb"
-          : isHovered
-          ? "#0284c7"
-          : organ.color;
-        ctx.beginPath();
-        ctx.arc(proj.px, proj.py, isHovered ? 7 : 5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Inner white highlight dot
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(proj.px, proj.py, 2.2, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Pulsing selection ring
-        if (isHovered || isSelected) {
-          ctx.strokeStyle = "rgba(56, 189, 248, 0.9)";
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.ellipse(
-            proj.px,
-            proj.py,
-            26,
-            10,
-            now,
-            0,
-            Math.PI * 2
-          );
-          ctx.stroke();
-        }
-      });
-
-      setOrganScreenPositions(organCoords);
-      animFrameId.current = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
-    };
-  }, [rotationX, rotationY, zoom, isDragging, hoveredOrgan, selectedOrganId]);
 
   return (
     <div
@@ -514,58 +132,304 @@ export default function HumanBody3D({
       onMouseLeave={handleMouseUp}
       onWheel={handleWheel}
     >
-      {/* Real 3D Canvas Matrix Visualizer */}
-      <canvas
-        ref={canvasRef}
-        width={540}
-        height={520}
-        className="cursor-grab active:cursor-grabbing w-full h-full max-w-[520px]"
-      />
+      {/* ── Background Spherical Grid Lines (Matching Reference Image) ── */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+        <div className="w-[440px] h-[440px] rounded-full border border-sky-200/60" />
+        <div className="absolute w-[360px] h-[360px] rounded-full border border-indigo-200/50" />
+        <div className="absolute w-[280px] h-[280px] rounded-full border border-sky-300/40" />
+        <div className="absolute w-[200px] h-[200px] rounded-full border border-cyan-200/50" />
 
-      {/* ── Dynamic Floating Organ Callout Cards (Track 3D Organ Screen Coords) ── */}
-      {ORGANS.map((organ) => {
-        const pos = organScreenPositions[organ.id];
-        if (!pos) return null;
+        {/* Diagonal Perspective Rays */}
+        <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-sky-200/30 to-transparent rotate-45" />
+        <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-indigo-200/30 to-transparent -rotate-45" />
+      </div>
 
-        // Position callout cards dynamically around the canvas
-        // Left side for Brain, Lungs, Liver; Right side for Heart, Kidney, Gut
-        const isLeft = ["brain", "lungs", "liver"].includes(organ.id);
-        const cardStyle: React.CSSProperties = {
-          position: "absolute",
-          top: `${pos.y - 20}px`,
-          left: isLeft ? `${Math.max(10, pos.x - 180)}px` : `${Math.min(360, pos.x + 40)}px`,
-        };
+      {/* ── 3D Interactive Human Body Container ── */}
+      <div
+        className="relative w-full h-full max-w-[460px] flex items-center justify-center cursor-grab active:cursor-grabbing transition-transform duration-75"
+        style={{
+          transform: `scale(${zoom}) rotateY(${rotationY}deg) rotateX(${rotationX}deg)`,
+          transformStyle: "preserve-3d",
+        }}
+      >
+        {/* ── 3D Circular Glass Pedestal Base ── */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-80 h-32 pointer-events-none">
+          {/* Base Glow Pool */}
+          <div className="absolute inset-0 rounded-[100%] bg-gradient-to-t from-sky-400/35 via-cyan-300/15 to-transparent blur-md" />
 
-        return (
-          <div
-            key={organ.id}
-            style={cardStyle}
-            className="z-20 cursor-pointer transition-transform duration-150 hover:scale-105"
-            onClick={() => onSelectOrgan && onSelectOrgan(organ)}
-            onMouseEnter={() => setHoveredOrgan(organ.id)}
-            onMouseLeave={() => setHoveredOrgan(null)}
+          {/* Concentric Disc Borders */}
+          <div className="absolute inset-0 rounded-[100%] border-2 border-sky-400/80 shadow-[0_0_20px_rgba(56,189,248,0.5)] bg-sky-500/10 backdrop-blur-xs" />
+          <div className="absolute inset-2.5 rounded-[100%] border border-sky-300/60" />
+          <div className="absolute inset-6 rounded-[100%] border border-cyan-300/50" />
+          <div className="absolute inset-10 rounded-[100%] border border-indigo-300/40" />
+
+          {/* Upward Volumetric Hologram Light Column */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-52 h-84 bg-gradient-to-t from-sky-400/25 via-cyan-200/10 to-transparent [clip-path:polygon(15%_100%,85%_100%,70%_0%,30%_0%)]" />
+        </div>
+
+        {/* ── High-Definition Semi-Transparent Holographic Female 3D Body Figure ── */}
+        <div className="relative z-10 w-[240px] h-[430px] flex items-center justify-center">
+          <svg
+            viewBox="0 0 240 430"
+            className="w-full h-full drop-shadow-[0_0_25px_rgba(56,189,248,0.4)]"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <div className="bg-white/95 backdrop-blur-md border border-slate-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-sm shadow-xs">
-                {organ.icon}
+            <defs>
+              {/* Semi-Transparent Body Gradient (Holographic Blue/Purple) */}
+              <linearGradient id="bodyHoloGrad" x1="120" y1="20" x2="120" y2="410" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.6" />
+                <stop offset="25%" stopColor="#818cf8" stopOpacity="0.45" />
+                <stop offset="60%" stopColor="#60a5fa" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.35" />
+              </linearGradient>
+
+              {/* Inner Organ Radiant Glow Filters */}
+              <filter id="glowBrainOrb" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3.5" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+
+              <filter id="glowHeartOrb" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="6" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+
+              <filter id="glowSolarOrb" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="8" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {/* ── Holographic Concentric Orbital Grid Rings Around Torso ── */}
+            <ellipse cx="120" cy="165" rx="72" ry="20" stroke="#38bdf8" strokeWidth="1.2" strokeOpacity="0.5" fill="none" transform="rotate(-12 120 165)" />
+            <ellipse cx="120" cy="165" rx="88" ry="25" stroke="#818cf8" strokeWidth="0.9" strokeOpacity="0.4" fill="none" transform="rotate(-12 120 165)" />
+            <ellipse cx="120" cy="165" rx="104" ry="30" stroke="#38bdf8" strokeWidth="0.6" strokeOpacity="0.25" fill="none" transform="rotate(-12 120 165)" />
+
+            {/* ── Realistic Female Anatomical Contour Body Path ── */}
+            <path
+              d="
+                M 120 22 
+                C 134 22, 142 34, 142 48 
+                C 142 60, 136 68, 129 74 
+                C 136 78, 148 85, 160 92 
+                C 168 97, 173 105, 174 118 
+                C 176 135, 172 165, 166 195 
+                C 164 210, 160 225, 157 235 
+                C 154 225, 150 210, 148 190 
+                C 146 170, 146 150, 146 130 
+                C 142 142, 140 165, 138 195 
+                C 136 220, 134 245, 133 260 
+                C 135 285, 137 320, 136 350 
+                C 134 380, 130 405, 127 418 
+                C 125 422, 120 422, 118 418 
+                C 115 385, 115 340, 115 290 
+                C 114 260, 114 260, 113 290 
+                C 113 340, 113 385, 110 418 
+                C 108 422, 103 422, 101 418 
+                C 98 405, 94 380, 92 350 
+                C 91 320, 93 285, 95 260 
+                C 94 245, 92 220, 90 195 
+                C 88 165, 86 142, 82 130 
+                C 82 150, 82 170, 80 190 
+                C 78 210, 74 225, 71 235 
+                C 68 225, 64 210, 62 195 
+                C 56 165, 52 135, 54 118 
+                C 55 105, 60 97, 68 92 
+                C 80 85, 92 78, 99 74 
+                C 92 68, 86 60, 86 48 
+                C 86 34, 94 22, 120 22 Z
+              "
+              fill="url(#bodyHoloGrad)"
+              stroke="#60a5fa"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+
+            {/* Inner Skeletal / Ribcage / Spinal Line Accents */}
+            <path
+              d="M 120 74 V 230 M 100 102 Q 120 112 140 102 M 98 120 Q 120 132 142 120 M 100 138 Q 120 150 140 138 M 102 156 Q 120 166 138 156 M 104 174 Q 120 184 136 174"
+              stroke="#93c5fd"
+              strokeWidth="1.0"
+              strokeOpacity="0.4"
+              fill="none"
+            />
+
+            {/* ── 3. INTENSE GLOWING ORGAN CORES (EXACT MATCH TO REFERENCE IMAGE) ── */}
+            {/* Brain Core (Crown/Head) */}
+            <circle cx="120" cy="42" r="11" fill="#818cf8" fillOpacity="0.85" filter="url(#glowBrainOrb)" />
+            <circle cx="120" cy="42" r="4.5" fill="#ffffff" />
+
+            {/* Lungs Core (Chest Lobes) */}
+            <ellipse cx="106" cy="120" rx="9" ry="15" fill="#34d399" fillOpacity="0.7" filter="url(#glowBrainOrb)" />
+            <ellipse cx="134" cy="120" rx="9" ry="15" fill="#34d399" fillOpacity="0.7" filter="url(#glowBrainOrb)" />
+
+            {/* Heart Core (Intense Glowing Red/Orange in Left Upper Chest) */}
+            <circle cx="128" cy="128" r="16" fill="#f43f5e" fillOpacity="0.95" filter="url(#glowHeartOrb)" />
+            <circle cx="128" cy="128" r="9" fill="#fb923c" fillOpacity="0.9" />
+            <circle cx="128" cy="128" r="4" fill="#ffffff" />
+
+            {/* Abdominal / Solar Plexus / Pelvic Core (Intense Glowing Orange/Red Center) */}
+            <circle cx="120" cy="195" r="22" fill="#f97316" fillOpacity="0.9" filter="url(#glowSolarOrb)" />
+            <circle cx="120" cy="195" r="12" fill="#fbbf24" fillOpacity="0.9" />
+            <circle cx="120" cy="195" r="5" fill="#ffffff" />
+
+            {/* Radiating Light Rays from Pelvic Center */}
+            <line x1="120" y1="195" x2="80" y2="175" stroke="#fbbf24" strokeWidth="1" strokeOpacity="0.6" />
+            <line x1="120" y1="195" x2="160" y2="175" stroke="#fbbf24" strokeWidth="1" strokeOpacity="0.6" />
+            <line x1="120" y1="195" x2="95" y2="235" stroke="#f97316" strokeWidth="1" strokeOpacity="0.5" />
+            <line x1="120" y1="195" x2="145" y2="235" stroke="#f97316" strokeWidth="1" strokeOpacity="0.5" />
+
+            {/* Liver Node */}
+            <circle cx="106" cy="162" r="7" fill="#fbbf24" fillOpacity="0.85" filter="url(#glowBrainOrb)" />
+            <circle cx="106" cy="162" r="2.5" fill="#ffffff" />
+
+            {/* Kidney Node */}
+            <circle cx="132" cy="175" r="6" fill="#60a5fa" fillOpacity="0.85" filter="url(#glowBrainOrb)" />
+            <circle cx="132" cy="175" r="2.5" fill="#ffffff" />
+          </svg>
+        </div>
+
+        {/* ── 4. FLOATING ORGAN CARDS (EXACT MATCH TO REFERENCE IMAGE) ── */}
+        {/* Left Column: Brain, Lungs, Liver */}
+        {/* Brain */}
+        <div
+          className="absolute top-[8%] left-1 sm:left-4 z-20 cursor-pointer transition-all duration-200 hover:scale-105"
+          onClick={() => onSelectOrgan && onSelectOrgan(ORGANS[0])}
+          onMouseEnter={() => setHoveredOrgan("brain")}
+          onMouseLeave={() => setHoveredOrgan(null)}
+        >
+          <div className="bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs ${ORGANS[0].iconBgClass}`}>
+              <span className={ORGANS[0].iconColorClass}>{ORGANS[0].icon}</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 leading-tight">
+                Brain
               </div>
-              <div>
-                <div className="text-xs font-bold text-slate-900 leading-tight">
-                  {organ.name}
-                </div>
-                <div className="text-[11px] font-semibold text-emerald-600">
-                  {organ.status}
-                </div>
+              <div className={`text-[11px] font-semibold ${ORGANS[0].statusColorClass}`}>
+                Healthy
               </div>
             </div>
           </div>
-        );
-      })}
+        </div>
 
-      {/* Bottom Right Interaction Hint */}
-      <div className="absolute bottom-4 right-4 flex items-center gap-1.5 text-[11px] font-medium text-slate-500 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full border border-slate-200/80 shadow-xs pointer-events-none z-30">
+        {/* Lungs */}
+        <div
+          className="absolute top-[32%] left-0 sm:left-2 z-20 cursor-pointer transition-all duration-200 hover:scale-105"
+          onClick={() => onSelectOrgan && onSelectOrgan(ORGANS[1])}
+          onMouseEnter={() => setHoveredOrgan("lungs")}
+          onMouseLeave={() => setHoveredOrgan(null)}
+        >
+          <div className="bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs ${ORGANS[1].iconBgClass}`}>
+              <span className={ORGANS[1].iconColorClass}>{ORGANS[1].icon}</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 leading-tight">
+                Lungs
+              </div>
+              <div className={`text-[11px] font-semibold ${ORGANS[1].statusColorClass}`}>
+                Healthy
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Liver */}
+        <div
+          className="absolute top-[54%] left-1 sm:left-4 z-20 cursor-pointer transition-all duration-200 hover:scale-105"
+          onClick={() => onSelectOrgan && onSelectOrgan(ORGANS[3])}
+          onMouseEnter={() => setHoveredOrgan("liver")}
+          onMouseLeave={() => setHoveredOrgan(null)}
+        >
+          <div className="bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs ${ORGANS[3].iconBgClass}`}>
+              <span className={ORGANS[3].iconColorClass}>{ORGANS[3].icon}</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 leading-tight">
+                Liver
+              </div>
+              <div className={`text-[11px] font-semibold ${ORGANS[3].statusColorClass}`}>
+                Normal
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Heart, Kidney, Gut */}
+        {/* Heart */}
+        <div
+          className="absolute top-[10%] right-1 sm:right-4 z-20 cursor-pointer transition-all duration-200 hover:scale-105"
+          onClick={() => onSelectOrgan && onSelectOrgan(ORGANS[2])}
+          onMouseEnter={() => setHoveredOrgan("heart")}
+          onMouseLeave={() => setHoveredOrgan(null)}
+        >
+          <div className="bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs ${ORGANS[2].iconBgClass}`}>
+              <span className={ORGANS[2].iconColorClass}>{ORGANS[2].icon}</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 leading-tight">
+                Heart
+              </div>
+              <div className={`text-[11px] font-semibold ${ORGANS[2].statusColorClass}`}>
+                Normal
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Kidney */}
+        <div
+          className="absolute top-[36%] right-0 sm:right-2 z-20 cursor-pointer transition-all duration-200 hover:scale-105"
+          onClick={() => onSelectOrgan && onSelectOrgan(ORGANS[4])}
+          onMouseEnter={() => setHoveredOrgan("kidney")}
+          onMouseLeave={() => setHoveredOrgan(null)}
+        >
+          <div className="bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs ${ORGANS[4].iconBgClass}`}>
+              <span className={ORGANS[4].iconColorClass}>{ORGANS[4].icon}</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 leading-tight">
+                Kidney
+              </div>
+              <div className={`text-[11px] font-semibold ${ORGANS[4].statusColorClass}`}>
+                Normal
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Gut */}
+        <div
+          className="absolute top-[58%] right-1 sm:right-4 z-20 cursor-pointer transition-all duration-200 hover:scale-105"
+          onClick={() => onSelectOrgan && onSelectOrgan(ORGANS[5])}
+          onMouseEnter={() => setHoveredOrgan("gut")}
+          onMouseLeave={() => setHoveredOrgan(null)}
+        >
+          <div className="bg-white/95 backdrop-blur-md border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl px-3.5 py-2 flex items-center gap-2.5">
+            <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-sm shadow-xs ${ORGANS[5].iconBgClass}`}>
+              <span className={ORGANS[5].iconColorClass}>{ORGANS[5].icon}</span>
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-900 leading-tight">
+                Gut
+              </div>
+              <div className={`text-[11px] font-semibold ${ORGANS[5].statusColorClass}`}>
+                Normal
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bottom Right Control Legend: Mouse Icon + Rotate / Zoom ── */}
+      <div className="absolute bottom-4 right-4 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-200/80 shadow-xs pointer-events-none z-30">
         <svg
-          className="w-3.5 h-3.5 text-slate-500"
+          className="w-4 h-4 text-slate-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -577,7 +441,7 @@ export default function HumanBody3D({
             d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239a9 9 0 00-4.8 4.8"
           />
         </svg>
-        <span>Rotate 360° / Drag</span>
+        <span>Rotate / Zoom</span>
       </div>
     </div>
   );
