@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import ClinicalCore, { ClinicalState, AssessingPhase } from "./ClinicalCore";
+import KidneyInputForm from "./KidneyInputForm";
 import { clinicalModels, ClinicalModelConfig } from "./clinical-models";
 import {
   AnemiaInputs,
@@ -23,8 +24,36 @@ import {
   predictHeartFailure,
   HEART_FAILURE_PRESETS,
 } from "./heart-failure-inference";
+import {
+  KidneyDiseaseInputs,
+  runKidneyDiseaseInference,
+  KIDNEY_DISEASE_PRESETS,
+} from "./kidney-disease-inference";
+import {
+  StrokeInputs,
+  runStrokeInference,
+  STROKE_PRESETS,
+} from "./stroke-inference";
+import {
+  HeartDiseaseInputs,
+  runHeartDiseaseInference,
+  HEART_DISEASE_PRESETS,
+} from "./heart-disease-inference";
+import {
+  LiverDiseaseInputs,
+  runLiverDiseaseInference,
+  LIVER_DISEASE_PRESETS,
+} from "./liver-disease-inference";
 
-type ActiveModelKey = "stroke" | "heartDisease" | "anemia" | "breastCancer" | "diabetes" | "heartFailure";
+type ActiveModelKey =
+  | "stroke"
+  | "heartDisease"
+  | "anemia"
+  | "breastCancer"
+  | "diabetes"
+  | "heartFailure"
+  | "kidneyDisease"
+  | "liverDisease";
 
 export default function ClinicalDashboardPage() {
   const [activeModelKey, setActiveModelKey] = useState<ActiveModelKey>("heartFailure");
@@ -59,6 +88,35 @@ export default function ClinicalDashboardPage() {
     "case1_acute_decomp"
   );
 
+  // ── Kidney Disease live inputs ────────────────────────────────────────────────
+  const [kidneyInputs, setKidneyInputs] = useState<KidneyDiseaseInputs>(
+    KIDNEY_DISEASE_PRESETS.case4_severe_ckd.inputs
+  );
+  const [selectedKidneyPresetKey, setSelectedKidneyPresetKey] = useState<string>(
+    "case4_severe_ckd"
+  );
+
+  // ── Stroke live inputs ────────────────────────────────────────────────────────
+  const [strokeInputs, setStrokeInputs] = useState<StrokeInputs>(
+    STROKE_PRESETS.case1_severe_stroke.inputs
+  );
+  const [selectedStrokePresetKey, setSelectedStrokePresetKey] = useState<string>("case1_severe_stroke");
+
+  // ── Heart Disease (Coronary) live inputs ─────────────────────────────────────
+  const [hdInputs, setHdInputs] = useState<HeartDiseaseInputs>(
+    HEART_DISEASE_PRESETS.case1_severe_cad.inputs
+  );
+  const [selectedHdPresetKey, setSelectedHdPresetKey] = useState<string>("case1_severe_cad");
+
+  // ── Liver Disease live inputs ─────────────────────────────────────────────────
+  const [liverInputs, setLiverInputs] = useState<LiverDiseaseInputs>(
+    LIVER_DISEASE_PRESETS.case1_acute_hepatitis.inputs
+  );
+  const [selectedLiverPresetKey, setSelectedLiverPresetKey] = useState<string>("case1_acute_hepatitis");
+
+  // ── Navbar model dropdown (mobile) ───────────────────────────────────────────
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+
   // ── Shared UI state ──────────────────────────────────────────────────────────
   const [showInputModal, setShowInputModal] = useState<boolean>(false);
   const [showCopilot, setShowCopilot] = useState<boolean>(false);
@@ -80,6 +138,10 @@ export default function ClinicalDashboardPage() {
   const liveBcResult = useMemo(() => runBreastCancerInference(bcInputs), [bcInputs]);
   const liveDiabetesResult = useMemo(() => runDiabetesInference(diabetesInputs), [diabetesInputs]);
   const liveHfResult = useMemo(() => predictHeartFailure(hfInputs), [hfInputs]);
+  const liveKidneyResult = useMemo(() => runKidneyDiseaseInference(kidneyInputs), [kidneyInputs]);
+  const liveStrokeResult = useMemo(() => runStrokeInference(strokeInputs), [strokeInputs]);
+  const liveHdResult = useMemo(() => runHeartDiseaseInference(hdInputs), [hdInputs]);
+  const liveLiverResult = useMemo(() => runLiverDiseaseInference(liverInputs), [liverInputs]);
 
   // ── Merge dynamic results into model config ──────────────────────────────────
   const modelConfig: ClinicalModelConfig = useMemo(() => {
@@ -150,8 +212,8 @@ export default function ClinicalDashboardPage() {
             ? "CRITICAL"
             : "HIGH"
           : prob > 25
-          ? "ELEVATED"
-          : "NORMAL",
+            ? "ELEVATED"
+            : "NORMAL",
         predictionStatus: liveBcResult.statusLabel,
         patient: {
           ...baseConfig.patient,
@@ -193,8 +255,8 @@ export default function ClinicalDashboardPage() {
             ? "HIGH"
             : "ELEVATED"
           : prob > 25
-          ? "MODERATE"
-          : "LOW",
+            ? "MODERATE"
+            : "LOW",
         predictionStatus: liveDiabetesResult.statusLabel,
         patient: {
           ...baseConfig.patient,
@@ -239,8 +301,8 @@ export default function ClinicalDashboardPage() {
             ? "CRITICAL"
             : "HIGH"
           : prob > 25
-          ? "MODERATE"
-          : "LOW",
+            ? "MODERATE"
+            : "LOW",
         predictionStatus: liveHfResult.statusLabel,
         patient: {
           ...baseConfig.patient,
@@ -260,8 +322,191 @@ export default function ClinicalDashboardPage() {
       };
     }
 
+    // ── Kidney Disease live merge ─────────────────────────────────────────────
+    if (activeModelKey === "kidneyDisease") {
+      const res = liveKidneyResult;
+      const factors = baseConfig.factors.map((factor) => {
+        const liveFactor = res.factors.find((f) => f.id === factor.id);
+        if (!liveFactor) return factor;
+        return {
+          ...factor,
+          contribution: liveFactor.relativeWeight,
+          valueDisplay: liveFactor.statusText,
+          baselineDisplay: liveFactor.normalRangeText,
+          description: liveFactor.clinicalNote,
+        };
+      });
+
+      const ckdRiskMap: Record<string, "NORMAL" | "LOW" | "MODERATE" | "ELEVATED" | "HIGH" | "CRITICAL"> = {
+        NORMAL: "NORMAL",
+        MILD: "MODERATE",
+        MODERATE: "ELEVATED",
+        SEVERE: "HIGH",
+        CRITICAL: "CRITICAL",
+      };
+
+      return {
+        ...baseConfig,
+        risk: Math.round(res.probabilityPercent),
+        riskLevel: ckdRiskMap[res.ckdRiskLevel] || "MODERATE",
+        predictionStatus: res.predictionClass.toUpperCase(),
+        patient: {
+          ...baseConfig.patient,
+          id: "ASSESSMENT",
+          age: 0,
+          gender: "",
+          date: "",
+          vitals: res.classificationBasis,
+        },
+        factors,
+        aiReasoning: `${res.renalStatusSummary} ${res.classificationBasis}. Output class: ${res.predictionClass}. Output probability: ${res.probabilityPercent}%. Clinical risk score: ${res.riskScore}. This is decision support only — not a diagnosis and not a prescription.`,
+        clinicalConsiderations: {
+          ...baseConfig.clinicalConsiderations,
+          priority:
+            res.stageIndex === 0
+              ? "Routine Monitoring — Healthy Renal Function"
+              : res.stageIndex === 1
+                ? "Elevated Monitoring — Mild CKD Stage 1-2"
+                : res.stageIndex === 2
+                  ? "Moderate Priority — CKD Stage 3 Management"
+                  : res.stageIndex === 3
+                    ? "High Priority — Severe CKD Stage 4 Signal"
+                    : "Critical Priority — Kidney Failure Stage 5",
+          priorityLevel: ckdRiskMap[res.ckdRiskLevel] === "CRITICAL" ? "CRITICAL" : ckdRiskMap[res.ckdRiskLevel] === "HIGH" ? "HIGH" : ckdRiskMap[res.ckdRiskLevel] === "ELEVATED" ? "ELEVATED" : "NORMAL",
+        },
+      };
+    }
+
+    // ── Stroke live merge ──────────────────────────────────────────────────────
+    if (activeModelKey === "stroke") {
+      const res = liveStrokeResult;
+      const factors = baseConfig.factors.map((factor) => {
+        const liveFactor = res.factors.find((f) => f.id === factor.id);
+        if (!liveFactor) return factor;
+        return {
+          ...factor,
+          contribution: liveFactor.contribution,
+          valueDisplay: liveFactor.valueDisplay,
+          baselineDisplay: liveFactor.baselineDisplay,
+          description: liveFactor.description,
+        };
+      });
+      const riskLevelMap: Record<string, "NORMAL" | "LOW" | "MODERATE" | "ELEVATED" | "HIGH" | "CRITICAL"> = {
+        LOW: "NORMAL",
+        ELEVATED: "ELEVATED",
+        HIGH: "HIGH",
+        CRITICAL: "CRITICAL",
+      };
+      return {
+        ...baseConfig,
+        risk: Math.round(res.probabilityPercent),
+        riskLevel: riskLevelMap[res.riskBand] || "ELEVATED",
+        predictionStatus: res.statusLabel,
+        patient: {
+          ...baseConfig.patient,
+          age: strokeInputs.age,
+          vitals: `BP ${strokeInputs.highBloodPressure ? "158/94" : "118/76"} · HBP ${strokeInputs.highBloodPressure ? "Yes" : "No"} · Arrhythmia ${strokeInputs.irregularHeartbeat ? "Yes" : "No"} · Age ${strokeInputs.age}`,
+        },
+        factors,
+        aiReasoning: res.clinicalSummary,
+        clinicalConsiderations: {
+          ...baseConfig.clinicalConsiderations,
+          priority: res.predictionClass === 1
+            ? `Urgent — ${res.riskBand} Stroke Risk (${res.probabilityPercent.toFixed(1)}%)`
+            : "Routine Monitoring — Low Stroke Risk",
+          priorityLevel: res.predictionClass === 1 ? (res.riskBand === "CRITICAL" ? "CRITICAL" : "HIGH") : "NORMAL",
+        },
+      };
+    }
+
+    // ── Heart Disease (Coronary) live merge ───────────────────────────────────
+    if (activeModelKey === "heartDisease") {
+      const res = liveHdResult;
+      const factors = baseConfig.factors.map((factor) => {
+        const liveFactor = res.factors.find((f) => f.id === factor.id);
+        if (!liveFactor) return factor;
+        return {
+          ...factor,
+          contribution: liveFactor.contribution,
+          valueDisplay: liveFactor.valueDisplay,
+          baselineDisplay: liveFactor.baselineDisplay,
+          description: liveFactor.description,
+        };
+      });
+      const hdRiskMap: Record<string, "NORMAL" | "LOW" | "MODERATE" | "ELEVATED" | "HIGH" | "CRITICAL"> = {
+        LOW: "NORMAL",
+        ELEVATED: "ELEVATED",
+        HIGH: "HIGH",
+        CRITICAL: "CRITICAL",
+      };
+      return {
+        ...baseConfig,
+        risk: Math.round(res.probabilityPercent),
+        riskLevel: hdRiskMap[res.riskBand] || "ELEVATED",
+        predictionStatus: res.statusLabel,
+        patient: {
+          ...baseConfig.patient,
+          age: hdInputs.age,
+          gender: hdInputs.sex === 1 ? "Male" : "Female",
+          vitals: `Age ${hdInputs.age} · BP ${hdInputs.trestbps} mmHg · Chol ${hdInputs.chol} mg/dL · HR ${hdInputs.thalach} bpm · ST-dep ${hdInputs.oldpeak}`,
+        },
+        factors,
+        aiReasoning: res.clinicalSummary,
+        clinicalConsiderations: {
+          ...baseConfig.clinicalConsiderations,
+          priority: res.predictionClass === 1
+            ? `High Priority — ${res.riskBand} Coronary Risk (${res.probabilityPercent.toFixed(1)}%)`
+            : "Routine Monitoring — Low Coronary Risk",
+          priorityLevel: res.predictionClass === 1 ? (res.riskBand === "CRITICAL" ? "CRITICAL" : "HIGH") : "NORMAL",
+        },
+      };
+    }
+
+    // ── Liver Disease live merge ──────────────────────────────────────────────
+    if (activeModelKey === "liverDisease") {
+      const res = liveLiverResult;
+      const factors = baseConfig.factors.map((factor) => {
+        const liveFactor = res.factors.find((f) => f.id === factor.id);
+        if (!liveFactor) return factor;
+        return {
+          ...factor,
+          contribution: liveFactor.contribution,
+          valueDisplay: liveFactor.valueDisplay,
+          baselineDisplay: liveFactor.baselineDisplay,
+          description: liveFactor.description,
+        };
+      });
+      const lvrRiskMap: Record<string, "NORMAL" | "LOW" | "MODERATE" | "ELEVATED" | "HIGH" | "CRITICAL"> = {
+        LOW: "NORMAL",
+        ELEVATED: "ELEVATED",
+        HIGH: "HIGH",
+        CRITICAL: "CRITICAL",
+      };
+      return {
+        ...baseConfig,
+        risk: Math.round(res.probabilityPercent),
+        riskLevel: lvrRiskMap[res.riskBand] || "ELEVATED",
+        predictionStatus: res.statusLabel,
+        patient: {
+          ...baseConfig.patient,
+          age: liverInputs.age,
+          gender: liverInputs.gender === 0 ? "Male" : "Female",
+          vitals: `Bilirubin ${liverInputs.totalBilirubin} mg/dL · ALT ${liverInputs.alamineAminotransferase} · AST ${liverInputs.aspartateAminotransferase} IU/L · Albumin ${liverInputs.albumin} g/dL`,
+        },
+        factors,
+        aiReasoning: res.clinicalSummary,
+        clinicalConsiderations: {
+          ...baseConfig.clinicalConsiderations,
+          priority: res.predictionClass === 1
+            ? `High Priority — ${res.riskBand} Hepatic Risk (${res.probabilityPercent.toFixed(1)}%)`
+            : "Routine Monitoring — Healthy Hepatic Function",
+          priorityLevel: res.predictionClass === 1 ? (res.riskBand === "CRITICAL" ? "CRITICAL" : "HIGH") : "NORMAL",
+        },
+      };
+    }
+
     return baseConfig;
-  }, [activeModelKey, liveAnemiaResult, liveBcResult, liveDiabetesResult, liveHfResult, anemiaInputs, bcInputs, diabetesInputs, hfInputs]);
+  }, [activeModelKey, liveAnemiaResult, liveBcResult, liveDiabetesResult, liveHfResult, liveKidneyResult, liveStrokeResult, liveHdResult, liveLiverResult, anemiaInputs, bcInputs, diabetesInputs, hfInputs, kidneyInputs, strokeInputs, hdInputs, liverInputs]);
 
   // ── Animated risk counter ────────────────────────────────────────────────────
   const [displayRisk, setDisplayRisk] = useState<number>(modelConfig.risk);
@@ -302,32 +547,39 @@ export default function ClinicalDashboardPage() {
   const handleModelChange = (key: ActiveModelKey) => {
     setActiveModelKey(key);
     setSelectedFactorId(null);
-    setShowInputModal(false);
+    setShowInputModal(key === "kidneyDisease");
 
     let targetRisk: number;
     if (key === "anemia") targetRisk = Math.round(liveAnemiaResult.probabilityPercent);
     else if (key === "breastCancer") targetRisk = Math.round(liveBcResult.probabilityPercent);
     else if (key === "diabetes") targetRisk = Math.round(liveDiabetesResult.probabilityPercent);
     else if (key === "heartFailure") targetRisk = Math.round(liveHfResult.probabilityPercent);
-    else targetRisk = clinicalModels[key].risk;
+    else if (key === "kidneyDisease") targetRisk = Math.round(liveKidneyResult.probabilityPercent);
+    else if (key === "stroke") targetRisk = Math.round(liveStrokeResult.probabilityPercent);
+    else if (key === "heartDisease") targetRisk = Math.round(liveHdResult.probabilityPercent);
+    else if (key === "liverDisease") targetRisk = Math.round(liveLiverResult.probabilityPercent);
+    else targetRisk = clinicalModels[key]?.risk ?? 50;
 
     setDisplayRisk(targetRisk);
     setClinicalState("RESULT");
 
-    // Reset copilot context when switching models
     const greetings: Record<ActiveModelKey, string> = {
       stroke:
-        "I've reviewed this patient's neurological stroke risk profile. Ask me about the model output, contributing vascular factors, or what to review.",
+        "I've reviewed this neurovascular stroke risk assessment. Ask about the predicted stroke probability, symptom contributors, or clinician follow-up. I cannot diagnose or prescribe.",
       heartDisease:
-        "I've reviewed this patient's coronary risk indicators. Ask me about the cardiac model prediction, contributing factors, or clinical follow-up.",
+        "I've reviewed this coronary heart disease screening. Ask about the CAD risk prediction, clinical biomarkers (cholesterol, ST depression, angina type), or what a cardiologist might review. I cannot diagnose or prescribe.",
       anemia:
-        "I've reviewed this patient's clinical hematology profile. Select a quick inquiry below or ask a specific question regarding diagnostic findings.",
+        "I've reviewed this hematology assessment. Ask about the model output, contributing factors, or what a clinician might review. I cannot diagnose or prescribe.",
       breastCancer:
-        "I've reviewed the current breast cancer model assessment for this FNA cytological aspirate. Ask me about the prediction, cytological contributors, or what the clinician should review.",
+        "I've reviewed this breast cancer model assessment. Ask about the prediction, cytological contributors, or clinician review. I cannot diagnose or prescribe.",
       diabetes:
-        "I've reviewed the current diabetes risk assessment and metabolic profile for this patient. Ask me about the prediction, glycemic contributors, or clinical review considerations.",
+        "I've reviewed this diabetes risk assessment. Ask about the prediction, metabolic contributors, or clinician review. I cannot diagnose or prescribe.",
       heartFailure:
-        "I've reviewed the current heart failure risk assessment and hemodynamic profile for this patient. Ask me about the mortality event prediction, systolic/cardiorenal contributors, or clinical review considerations.",
+        "I've reviewed this heart failure assessment. Ask about the event prediction, contributing factors, or clinician review. I cannot diagnose or prescribe.",
+      kidneyDisease:
+        "Context: Kidney Disease Prediction. I can explain the assessment class, output probability, risk score, and contributing factors. I cannot diagnose, prescribe medication, or replace a licensed clinician.",
+      liverDisease:
+        "I've reviewed this hepatic function assessment. Ask about liver disease probability, bilirubin levels, transaminase elevation, albumin synthesis, or what a hepatologist might review. I cannot diagnose or prescribe.",
     };
     setCopilotMessages([{ sender: "ai", text: greetings[key] }]);
   };
@@ -362,6 +614,38 @@ export default function ClinicalDashboardPage() {
     if (preset) {
       setSelectedHfPresetKey(presetKey);
       setHfInputs(preset.inputs);
+    }
+  };
+
+  const handleKidneyPresetSelect = (presetKey: string) => {
+    const preset = KIDNEY_DISEASE_PRESETS[presetKey];
+    if (preset) {
+      setSelectedKidneyPresetKey(presetKey);
+      setKidneyInputs(preset.inputs);
+    }
+  };
+
+  const handleStrokePresetSelect = (presetKey: string) => {
+    const preset = STROKE_PRESETS[presetKey];
+    if (preset) {
+      setSelectedStrokePresetKey(presetKey);
+      setStrokeInputs(preset.inputs);
+    }
+  };
+
+  const handleHdPresetSelect = (presetKey: string) => {
+    const preset = HEART_DISEASE_PRESETS[presetKey];
+    if (preset) {
+      setSelectedHdPresetKey(presetKey);
+      setHdInputs(preset.inputs);
+    }
+  };
+
+  const handleLiverPresetSelect = (presetKey: string) => {
+    const preset = LIVER_DISEASE_PRESETS[presetKey];
+    if (preset) {
+      setSelectedLiverPresetKey(presetKey);
+      setLiverInputs(preset.inputs);
     }
   };
 
@@ -453,6 +737,90 @@ export default function ClinicalDashboardPage() {
         default:
           answer = `Based on the patient's hematological findings, ${res.statusLabel} is indicated. Clinical correlation with iron stores and reticulocyte production index is strongly advised.`;
       }
+    } else if (activeModelKey === "kidneyDisease") {
+      const res = liveKidneyResult;
+      switch (actionType) {
+        case "explain":
+          answer = `Kidney Disease Prediction output class: ${res.predictionClass}. Output probability: ${res.probabilityPercent}%. Clinical risk score: ${res.riskScore}. Risk band: ${res.ckdRiskLevel}. Basis: ${res.classificationBasis}. This is decision support only and is not a diagnosis.`;
+          break;
+        case "factors":
+          answer = `Contributing factors returned by the assessment: ${res.factors.map((f) => `${f.name} (${f.relativeWeight}%)`).join("; ")}.`;
+          break;
+        case "measurements":
+          answer = `Classification basis from the current run: ${res.classificationBasis}. ${res.renalStatusSummary}`;
+          break;
+        case "review":
+          answer = `Items a licensed clinician may review: confirmatory eGFR, urine albumin quantification, metabolic panel, and blood count. This assistant cannot prescribe treatment.`;
+          break;
+        case "questions":
+          answer = `Questions for a clinician: What is the trend in kidney function over time? Are blood pressure and diabetes being managed? Is specialist referral appropriate? This is not medical advice.`;
+          break;
+        default:
+          answer = `Output class: ${res.predictionClass}. Output probability: ${res.probabilityPercent}%. Risk score: ${res.riskScore}. Requires licensed clinician review.`;
+      }
+    } else if (activeModelKey === "stroke") {
+      const res = liveStrokeResult;
+      switch (actionType) {
+        case "explain":
+          answer = `The StandardScaler + Logistic Regression model evaluated 15 binary neurological/cardiovascular symptoms + Age across 70,000 records. The probability of ${res.statusLabel} is ${res.probabilityPercent.toFixed(1)}% (${res.riskBand} band). Logit: ${res.logit.toFixed(2)}.`;
+          break;
+        case "factors":
+          answer = `Top stroke risk contributors: ${res.factors.slice(0, 4).map((f, i) => `(${i + 1}) ${f.name} [${f.contribution}%]`).join(", ")}. The model uses coefficient-weighted symptom attribution.`;
+          break;
+        case "measurements":
+          answer = `Active symptoms: ${["chestPain", "shortnessOfBreath", "irregularHeartbeat", "highBloodPressure", "dizziness", "fatigueWeakness"].filter((k) => (strokeInputs as unknown as Record<string, number>)[k] === 1).join(", ") || "None active"}. Age: ${strokeInputs.age} years.`;
+          break;
+        case "review":
+          answer = `Recommended clinical review: (1) Transcranial Doppler for MCA velocities, (2) 24-hour ambulatory blood pressure monitoring, (3) Carotid duplex imaging, (4) HbA1c and lipid panel. This is decision support only.`;
+          break;
+        case "questions":
+          answer = `Suggested questions: 1) Is antiplatelet monotherapy or dual therapy appropriate? 2) Target systolic goal < 130 mmHg over 14 days? 3) History of TIA or prior cerebrovascular events?`;
+          break;
+        default:
+          answer = `Stroke risk assessment: ${res.statusLabel} at ${res.probabilityPercent.toFixed(1)}% probability. ${res.riskBand} risk band. Requires clinician review.`;
+      }
+    } else if (activeModelKey === "heartDisease") {
+      const res = liveHdResult;
+      switch (actionType) {
+        case "explain":
+          answer = `The Logistic Regression model (Cleveland dataset, ROC-AUC 0.923) evaluated 13 cardiac features with StandardScaler + OneHotEncoding. Coronary risk probability: ${res.probabilityPercent.toFixed(1)}% (${res.riskBand} band). Classification: ${res.statusLabel}.`;
+          break;
+        case "factors":
+          answer = `Top coronary risk contributors: ${res.factors.slice(0, 4).map((f, i) => `(${i + 1}) ${f.name} [${f.contribution}%]`).join(", ")}. These are ranked by absolute logistic regression coefficient contribution.`;
+          break;
+        case "measurements":
+          answer = `Key cardiac inputs: Age ${hdInputs.age}, BP ${hdInputs.trestbps} mmHg, Chol ${hdInputs.chol} mg/dL, Max HR ${hdInputs.thalach} bpm, ST Depression ${hdInputs.oldpeak}, Vessels ${hdInputs.ca}, CP Type ${hdInputs.cp}, Exercise Angina: ${hdInputs.exang ? "Yes" : "No"}.`;
+          break;
+        case "review":
+          answer = `Recommended clinical review: (1) Stress echocardiography or nuclear perfusion imaging, (2) Coronary CT angiography, (3) Lipid panel with LDL particle number, (4) hs-CRP for inflammatory risk stratification. Decision support only.`;
+          break;
+        case "questions":
+          answer = `Suggested questions: 1) Is invasive coronary angiography indicated based on non-invasive findings? 2) Should high-intensity statin therapy be initiated? 3) Is cardiac rehabilitation appropriate for this risk profile?`;
+          break;
+        default:
+          answer = `Coronary heart disease assessment: ${res.statusLabel} at ${res.probabilityPercent.toFixed(1)}% probability. Requires cardiologist review.`;
+      }
+    } else if (activeModelKey === "liverDisease") {
+      const res = liveLiverResult;
+      switch (actionType) {
+        case "explain":
+          answer = `The ILPD Logistic Regression model evaluated 10 hepatic biomarkers across 583 records (ROC-AUC 0.749). Liver disease probability: ${res.probabilityPercent.toFixed(1)}% (${res.riskBand} band). Classification: ${res.statusLabel}.`;
+          break;
+        case "factors":
+          answer = `Top hepatic risk contributors: ${res.factors.slice(0, 4).map((f, i) => `(${i + 1}) ${f.name} [${f.contribution}%]`).join(", ")}. Bilirubin and transaminase elevations are the dominant signals.`;
+          break;
+        case "measurements":
+          answer = `Key liver panel values: Total Bilirubin ${liverInputs.totalBilirubin} mg/dL, Direct Bilirubin ${liverInputs.directBilirubin} mg/dL, ALT ${liverInputs.alamineAminotransferase} IU/L, AST ${liverInputs.aspartateAminotransferase} IU/L, ALP ${liverInputs.alkalinePhosphotase} IU/L, Albumin ${liverInputs.albumin} g/dL, A/G Ratio ${liverInputs.albuminAndGlobulinRatio}.`;
+          break;
+        case "review":
+          answer = `Recommended clinical review: (1) Fractionated bilirubin and serial LFT trending, (2) RUQ ultrasound for parenchymal assessment, (3) PT/INR for synthetic function, (4) Viral hepatitis serologies and autoimmune panel. Decision support only.`;
+          break;
+        case "questions":
+          answer = `Suggested questions: 1) History of chronic alcohol use or viral hepatitis risk factors? 2) Recent exposure to hepatotoxic medications or supplements? 3) Baseline liver imaging for steatosis vs nodularity assessment?`;
+          break;
+        default:
+          answer = `Liver disease assessment: ${res.statusLabel} at ${res.probabilityPercent.toFixed(1)}% probability. Requires hepatology review.`;
+      }
     } else {
       answer = `Model result: ${modelConfig.predictionStatus} at ${displayRisk}% prediction probability. Please review the contributing factors and consult the clinical considerations section.`;
     }
@@ -477,6 +845,14 @@ export default function ClinicalDashboardPage() {
       reply = `Based on the FNA cytological findings (${liveBcResult.statusLabel} at ${liveBcResult.probabilityPercent.toFixed(1)}%), with top contributors including ${liveBcResult.factors[0]?.name ?? "nuclear morphology"}, this assessment warrants urgent clinician review. The NEXUS model provides decision support — histopathological confirmation is required before clinical action.`;
     } else if (activeModelKey === "anemia") {
       reply = `Based on the patient's hematological findings (${anemiaInputs.hemoglobin} g/dL Hb, ${anemiaInputs.mcv} fL MCV), ${liveAnemiaResult.statusLabel.toLowerCase()} is indicated. Clinical correlation with iron stores and reticulocyte production index is strongly advised.`;
+    } else if (activeModelKey === "kidneyDisease") {
+      reply = `Kidney Disease Prediction: class ${liveKidneyResult.predictionClass}, output probability ${liveKidneyResult.probabilityPercent}%, risk score ${liveKidneyResult.riskScore}. ${liveKidneyResult.renalStatusSummary} Decision support only — not a diagnosis or prescription.`;
+    } else if (activeModelKey === "stroke") {
+      reply = `Stroke Risk Assessment: ${liveStrokeResult.statusLabel} at ${liveStrokeResult.probabilityPercent.toFixed(1)}% probability (${liveStrokeResult.riskBand} band). ${liveStrokeResult.clinicalSummary} Clinical decision support — requires neurologist review.`;
+    } else if (activeModelKey === "heartDisease") {
+      reply = `Coronary Heart Disease Screening: ${liveHdResult.statusLabel} at ${liveHdResult.probabilityPercent.toFixed(1)}% probability (${liveHdResult.riskBand} band). ${liveHdResult.clinicalSummary} Clinical decision support — requires cardiologist review.`;
+    } else if (activeModelKey === "liverDisease") {
+      reply = `Liver Disease Assessment: ${liveLiverResult.statusLabel} at ${liveLiverResult.probabilityPercent.toFixed(1)}% probability (${liveLiverResult.riskBand} band). ${liveLiverResult.clinicalSummary} Clinical decision support — requires hepatologist review.`;
     } else {
       reply = `The NEXUS ${modelConfig.name} assessment shows ${modelConfig.predictionStatus}. Please review the contributing factors panel for the primary risk drivers. Clinical decision support — requires licensed physician review.`;
     }
@@ -494,6 +870,20 @@ export default function ClinicalDashboardPage() {
     };
   }, []);
 
+  // Close model dropdown on outside click
+  useEffect(() => {
+    if (!modelDropdownOpen) return;
+    const handler = () => setModelDropdownOpen(false);
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, [modelDropdownOpen]);
+
+  useEffect(() => {
+    if (clinicalState === "RESULT") {
+      setDisplayRisk(modelConfig.risk);
+    }
+  }, [modelConfig.risk, clinicalState]);
+
   const activeFactor =
     modelConfig.factors.find((f) => f.id === selectedFactorId) ||
     modelConfig.factors[0];
@@ -503,144 +893,200 @@ export default function ClinicalDashboardPage() {
     modelConfig.risk >= 80 ||
     modelConfig.predictionStatus === "ANEMIA DETECTED" ||
     modelConfig.predictionStatus === "MALIGNANT" ||
-    modelConfig.predictionStatus === "DIABETES DETECTED";
+    modelConfig.predictionStatus === "DIABETES DETECTED" ||
+    modelConfig.predictionStatus === "HIGH STROKE RISK DETECTED" ||
+    modelConfig.predictionStatus === "CORONARY HEART DISEASE DETECTED" ||
+    modelConfig.predictionStatus === "LIVER DISEASE DETECTED" ||
+    modelConfig.predictionStatus === "HEPATIC IMPAIRMENT DETECTED" ||
+    (activeModelKey === "kidneyDisease" && liveKidneyResult.stageIndex >= 2);
 
   return (
     <div className="min-h-screen bg-[#fafafb] text-slate-900 font-sans antialiased selection:bg-slate-200">
       {/* ======================================================================= */}
       {/* 1. TOP EDITORIAL BAR: NEXUS CLINICAL INTELLIGENCE                        */}
       {/* ======================================================================= */}
+      {/* ======================================================================= */}
       <header className="border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-14 flex items-center justify-between gap-3">
+
+          {/* ── Brand ──────────────────────────────────────────────────── */}
+          <div className="flex items-center gap-3 shrink-0">
             <span className="font-semibold text-base tracking-[-0.03em] text-slate-950 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-slate-900" />
-              NEXUS
+              VITAWEAVE
             </span>
-            <div className="h-4 w-px bg-slate-200" />
-            <span className="text-[11px] font-medium tracking-[0.2em] uppercase text-slate-500">
-              Clinical Intelligence Workstation
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+            <span className="text-[11px] font-medium tracking-[0.2em] uppercase text-slate-500 hidden md:inline">
+              Clinical Intelligence
             </span>
           </div>
 
-          {/* Model Switcher Tabs — side by side in navbar */}
-          <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-full border border-slate-200/60">
+          {/* ── Model switcher: DROPDOWN on <lg, PILL TABS on lg+ ──────── */}
+
+          {/* Mobile / Tablet dropdown */}
+          <div className="relative lg:hidden">
             <button
-              onClick={() => handleModelChange("stroke")}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                activeModelKey === "stroke"
-                  ? "bg-white text-slate-900 shadow-sm font-semibold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
+              onClick={() => setModelDropdownOpen((o) => !o)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold transition-colors cursor-pointer"
             >
-              Stroke Model (Neuro)
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-700 shrink-0" />
+              {([
+                { key: "stroke", label: "Stroke" },
+                { key: "heartDisease", label: "Coronary" },
+                { key: "anemia", label: "Anemia" },
+                { key: "breastCancer", label: "Breast Cancer" },
+                { key: "diabetes", label: "Diabetes" },
+                { key: "heartFailure", label: "Heart Failure" },
+                { key: "kidneyDisease", label: "Kidney" },
+                { key: "liverDisease", label: "Liver" },
+              ] as { key: ActiveModelKey; label: string }[]).find((m) => m.key === activeModelKey)?.label ?? "Select Model"}
+              <svg className={`w-3 h-3 text-slate-500 transition-transform ${modelDropdownOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
-            <button
-              onClick={() => handleModelChange("heartDisease")}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                activeModelKey === "heartDisease"
-                  ? "bg-white text-slate-900 shadow-sm font-semibold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              Coronary Model (Cardio)
-            </button>
-            <button
-              onClick={() => handleModelChange("anemia")}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                activeModelKey === "anemia"
-                  ? "bg-white text-slate-900 shadow-sm font-semibold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              Anemia Model (Hematology)
-            </button>
-            <button
-              onClick={() => handleModelChange("breastCancer")}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                activeModelKey === "breastCancer"
-                  ? "bg-white text-slate-900 shadow-sm font-semibold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              Breast Cancer Model (Oncology)
-            </button>
-            <button
-              onClick={() => handleModelChange("diabetes")}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                activeModelKey === "diabetes"
-                  ? "bg-white text-slate-900 shadow-sm font-semibold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              Diabetes Model (Metabolic)
-            </button>
-            <button
-              onClick={() => handleModelChange("heartFailure")}
-              className={`px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 cursor-pointer ${
-                activeModelKey === "heartFailure"
-                  ? "bg-white text-slate-900 shadow-sm font-semibold"
-                  : "text-slate-500 hover:text-slate-900"
-              }`}
-            >
-              Heart Failure (Hemodynamics)
-            </button>
+
+            {modelDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden py-1">
+                {([
+                  { key: "stroke", label: "Stroke", sub: "Neurology" },
+                  { key: "heartDisease", label: "Coronary", sub: "Cardiology" },
+                  { key: "anemia", label: "Anemia", sub: "Hematology" },
+                  { key: "breastCancer", label: "Breast Cancer", sub: "Oncology" },
+                  { key: "diabetes", label: "Diabetes", sub: "Metabolic" },
+                  { key: "heartFailure", label: "Heart Failure", sub: "Hemodynamics" },
+                  { key: "kidneyDisease", label: "Kidney Disease", sub: "Nephrology" },
+                  { key: "liverDisease", label: "Liver Disease", sub: "Hepatology" },
+                ] as { key: ActiveModelKey; label: string; sub: string }[]).map(({ key, label, sub }) => (
+                  <button
+                    key={key}
+                    onClick={() => { handleModelChange(key); setModelDropdownOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-xs transition-colors flex items-center justify-between cursor-pointer ${activeModelKey === key
+                        ? "bg-slate-900 text-white font-semibold"
+                        : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                  >
+                    <span>{label}</span>
+                    <span className={`text-[10px] ${activeModelKey === key ? "text-slate-300" : "text-slate-400"}`}>{sub}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
+          {/* Desktop pill tabs */}
+          <div className="hidden lg:flex items-center gap-0.5 bg-slate-100 p-1 rounded-full border border-slate-200/60 overflow-hidden">
+            {([
+              { key: "stroke", label: "Stroke" },
+              { key: "heartDisease", label: "Coronary" },
+              { key: "anemia", label: "Anemia" },
+              { key: "breastCancer", label: "Cancer" },
+              { key: "diabetes", label: "Diabetes" },
+              { key: "heartFailure", label: "Heart Failure" },
+              { key: "kidneyDisease", label: "Kidney" },
+              { key: "liverDisease", label: "Liver" },
+            ] as { key: ActiveModelKey; label: string }[]).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => handleModelChange(key)}
+                className={`px-2.5 xl:px-3 py-1 text-[11px] font-medium rounded-full transition-all duration-150 cursor-pointer whitespace-nowrap ${activeModelKey === key
+                    ? "bg-white text-slate-900 shadow-sm font-semibold"
+                    : "text-slate-500 hover:text-slate-800"
+                  }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
         </div>
       </header>
 
       {/* ======================================================================= */}
-      {/* 2. PATIENT CONTEXT BANNER                                                 */}
+      {/* 2. CONTEXT BANNER                                                         */}
       {/* ======================================================================= */}
       <div className="border-b border-slate-200/60 bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-3.5 flex flex-wrap items-center justify-between gap-4 text-xs">
-          <div className="flex items-center gap-6">
-            <div>
-              <span className="font-mono font-semibold tracking-wider text-slate-900">
-                {modelConfig.patient.id}
-              </span>
-              <span className="text-slate-600 ml-2 font-medium">
-                {modelConfig.patient.age} · {modelConfig.patient.gender}
-              </span>
-            </div>
-            <div className="h-3 w-px bg-slate-200 hidden sm:block" />
-            <div className="text-slate-600 hidden sm:block">
-              <span className="text-slate-500 uppercase tracking-wider text-[10px]">
-                Clinical Data:{" "}
-              </span>
-              <span className="font-mono">{modelConfig.patient.vitals}</span>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-3 sm:py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+            {activeModelKey === "kidneyDisease" ? (
+              <div>
+                <span className="font-semibold tracking-wider text-slate-900">Kidney Disease Assessment</span>
+                <span className="text-slate-500 ml-2 font-medium">Nephrology · Private input</span>
+              </div>
+            ) : activeModelKey === "stroke" ? (
+              <div>
+                <span className="font-semibold tracking-wider text-slate-900">Stroke Risk Assessment</span>
+                <span className="text-slate-500 ml-2 font-medium">Neurology · Symptom Profile</span>
+              </div>
+            ) : activeModelKey === "heartDisease" ? (
+              <div>
+                <span className="font-semibold tracking-wider text-slate-900">Coronary Heart Disease Screening</span>
+                <span className="text-slate-500 ml-2 font-medium">Cardiology · Cleveland Protocol</span>
+              </div>
+            ) : activeModelKey === "liverDisease" ? (
+              <div>
+                <span className="font-semibold tracking-wider text-slate-900">Liver Disease Screening</span>
+                <span className="text-slate-500 ml-2 font-medium">Hepatology · ILPD Protocol</span>
+              </div>
+            ) : (
+              <div>
+                <span className="font-mono font-semibold tracking-wider text-slate-900">
+                  {modelConfig.patient.id}
+                </span>
+                <span className="text-slate-600 ml-2 font-medium">
+                  {modelConfig.patient.age} · {modelConfig.patient.gender}
+                </span>
+              </div>
+            )}
+            {activeModelKey !== "kidneyDisease" && activeModelKey !== "stroke" && activeModelKey !== "heartDisease" && activeModelKey !== "liverDisease" && (
+              <>
+                <div className="h-3 w-px bg-slate-200 hidden sm:block" />
+                <div className="text-slate-600 hidden md:block">
+                  <span className="text-slate-500 uppercase tracking-wider text-[10px]">
+                    Clinical Data:{" "}
+                  </span>
+                  <span className="font-mono">{modelConfig.patient.vitals}</span>
+                </div>
+              </>
+            )}
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Lab Input button — shown for interactive models */}
-            {(activeModelKey === "anemia" || activeModelKey === "breastCancer" || activeModelKey === "diabetes" || activeModelKey === "heartFailure") && (
-              <button
-                onClick={() => setShowInputModal(!showInputModal)}
-                className="px-3 py-1 rounded border border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>
-                  {activeModelKey === "heartFailure"
-                    ? "🫀 Hemodynamic Inputs"
-                    : activeModelKey === "diabetes"
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+            {/* Lab Input button — shown for all interactive models */}
+            <button
+              onClick={() => setShowInputModal(!showInputModal)}
+              className="px-2.5 sm:px-3 py-1 rounded border border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>
+                {activeModelKey === "heartFailure"
+                  ? "🫀 Hemodynamic Inputs"
+                  : activeModelKey === "diabetes"
                     ? "🩺 Metabolic Lab Inputs"
                     : activeModelKey === "breastCancer"
-                    ? "🔬 Cytological Inputs"
-                    : "🧪 Patient Lab Inputs"}
-                </span>
-                <span className="text-[10px] text-slate-400">
-                  ({showInputModal ? "Hide" : "Edit"})
-                </span>
-              </button>
-            )}
+                      ? "🔬 Cytological Inputs"
+                      : activeModelKey === "kidneyDisease"
+                        ? "🫘 Renal Biomarker Inputs"
+                        : activeModelKey === "stroke"
+                          ? "🧠 Neuro Symptom Inputs"
+                          : activeModelKey === "heartDisease"
+                            ? "🫀 Coronary Biomarker Inputs"
+                            : activeModelKey === "liverDisease"
+                              ? "🫀 Hepatic Panel Inputs"
+                              : "🧪 Lab Inputs"}
+              </span>
+              <span className="text-[10px] text-slate-400">
+                ({showInputModal ? "Hide" : "Edit"})
+              </span>
+            </button>
             <div className="flex items-center gap-2">
               <span className="text-slate-500 uppercase tracking-wider text-[10px]">
-                Active Model:
+                Active:
               </span>
               <span className="font-semibold text-slate-800">{modelConfig.name}</span>
             </div>
             <div className="h-3 w-px bg-slate-200 hidden sm:block" />
-            <div className="font-mono text-slate-500 text-[11px]">{modelConfig.patient.date}</div>
+            <div className="font-mono text-slate-500 text-[11px] hidden sm:block">
+              {(activeModelKey === "kidneyDisease" || activeModelKey === "stroke" || activeModelKey === "heartDisease" || activeModelKey === "liverDisease") ? "" : modelConfig.patient.date}
+            </div>
           </div>
         </div>
       </div>
@@ -649,7 +1095,7 @@ export default function ClinicalDashboardPage() {
       {/* 3A. ANEMIA INTERACTIVE LAB INPUT FORM                                    */}
       {/* ======================================================================= */}
       {activeModelKey === "anemia" && showInputModal && (
-        <div className="bg-slate-50 border-b border-slate-200/80 px-6 lg:px-10 py-5">
+        <div className="bg-slate-50 border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <div>
@@ -664,17 +1110,16 @@ export default function ClinicalDashboardPage() {
                   Regression pipeline.
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <span className="text-[11px] text-slate-500 font-medium">Presets:</span>
                 {Object.entries(ANEMIA_PRESETS).map(([key, preset]) => (
                   <button
                     key={key}
                     onClick={() => handleAnemiaPresetSelect(key)}
-                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${
-                      selectedAnemiaPresetKey === key
+                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${selectedAnemiaPresetKey === key
                         ? "bg-slate-900 text-white font-medium"
                         : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     {preset.label.split(":")[0]}
                   </button>
@@ -692,22 +1137,20 @@ export default function ClinicalDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setAnemiaInputs({ ...anemiaInputs, gender: 0 })}
-                    className={`py-1 text-xs rounded font-medium text-center ${
-                      anemiaInputs.gender === 0
+                    className={`py-1 text-xs rounded font-medium text-center ${anemiaInputs.gender === 0
                         ? "bg-slate-900 text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
+                      }`}
                   >
                     Male (0)
                   </button>
                   <button
                     type="button"
                     onClick={() => setAnemiaInputs({ ...anemiaInputs, gender: 1 })}
-                    className={`py-1 text-xs rounded font-medium text-center ${
-                      anemiaInputs.gender === 1
+                    className={`py-1 text-xs rounded font-medium text-center ${anemiaInputs.gender === 1
                         ? "bg-slate-900 text-white"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
+                      }`}
                   >
                     Female (1)
                   </button>
@@ -826,10 +1269,10 @@ export default function ClinicalDashboardPage() {
               </div>
             </div>
 
-            <div className="mt-3.5 flex justify-end">
+            <div className="mt-3.5 flex justify-stretch sm:justify-end">
               <button
                 onClick={triggerAssessment}
-                className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>↻ Re-Run Anemia Assessment</span>
               </button>
@@ -842,7 +1285,7 @@ export default function ClinicalDashboardPage() {
       {/* 3B. BREAST CANCER CYTOLOGICAL INPUT FORM                                 */}
       {/* ======================================================================= */}
       {activeModelKey === "breastCancer" && showInputModal && (
-        <div className="bg-slate-50 border-b border-slate-200/80 px-6 lg:px-10 py-5">
+        <div className="bg-slate-50 border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <div>
@@ -857,17 +1300,16 @@ export default function ClinicalDashboardPage() {
                   into StandardScaler + Logistic Regression pipeline (best_breast_cancer_model.pkl).
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <span className="text-[11px] text-slate-500 font-medium">Clinical Presets:</span>
                 {Object.entries(BREAST_CANCER_PRESETS).map(([key, preset]) => (
                   <button
                     key={key}
                     onClick={() => handleBcPresetSelect(key)}
-                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${
-                      selectedBcPresetKey === key
+                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${selectedBcPresetKey === key
                         ? "bg-slate-900 text-white font-medium"
                         : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     {preset.label.split(":")[0]}
                   </button>
@@ -1028,14 +1470,13 @@ export default function ClinicalDashboardPage() {
             </div>
 
             {/* Live result preview + run button */}
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
                 <span
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                    liveBcResult.predictionClass === 1
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 ${liveBcResult.predictionClass === 1
                       ? "bg-rose-600 text-white"
                       : "bg-emerald-600 text-white"
-                  }`}
+                    }`}
                 >
                   Live: {liveBcResult.statusLabel}
                 </span>
@@ -1048,7 +1489,7 @@ export default function ClinicalDashboardPage() {
               </div>
               <button
                 onClick={triggerAssessment}
-                className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>↻ Run Breast Cancer Assessment</span>
               </button>
@@ -1061,7 +1502,7 @@ export default function ClinicalDashboardPage() {
       {/* 3C. DIABETES INTERACTIVE METABOLIC INPUT FORM                            */}
       {/* ======================================================================= */}
       {activeModelKey === "diabetes" && showInputModal && (
-        <div className="bg-slate-50 border-b border-slate-200/80 px-6 lg:px-10 py-5">
+        <div className="bg-slate-50 border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <div>
@@ -1075,17 +1516,16 @@ export default function ClinicalDashboardPage() {
                   Direct numerical features evaluated by the 100-tree tuned XGBoost ensemble and StandardScaler pipeline.
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <span className="text-[11px] text-slate-500 font-medium">Verified Patient Presets:</span>
                 {Object.entries(DIABETES_PRESETS).map(([key, preset]) => (
                   <button
                     key={key}
                     onClick={() => handleDiabetesPresetSelect(key)}
-                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${
-                      selectedDiabetesPresetKey === key
+                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${selectedDiabetesPresetKey === key
                         ? "bg-slate-900 text-white font-medium shadow-xs"
                         : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     {preset.label.split(":")[0]}
                   </button>
@@ -1360,14 +1800,13 @@ export default function ClinicalDashboardPage() {
             </div>
 
             {/* Live result preview + run button */}
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
-              <div className="flex items-center gap-3">
+            <div className="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
                 <span
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                    liveDiabetesResult.predictionClass === 1
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 ${liveDiabetesResult.predictionClass === 1
                       ? "bg-amber-600 text-white"
                       : "bg-emerald-600 text-white"
-                  }`}
+                    }`}
                 >
                   Live: {liveDiabetesResult.statusLabel}
                 </span>
@@ -1380,7 +1819,7 @@ export default function ClinicalDashboardPage() {
               </div>
               <button
                 onClick={triggerAssessment}
-                className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>↻ Run Diabetes Assessment</span>
               </button>
@@ -1393,7 +1832,7 @@ export default function ClinicalDashboardPage() {
       {/* 3D. HEART FAILURE INTERACTIVE CLINICAL INPUT FORM                         */}
       {/* ======================================================================= */}
       {activeModelKey === "heartFailure" && showInputModal && (
-        <div className="bg-slate-50 border-b border-slate-200/80 px-6 lg:px-10 py-5">
+        <div className="bg-slate-50 border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <div>
@@ -1407,17 +1846,16 @@ export default function ClinicalDashboardPage() {
                   Direct clinical features evaluated by the RobustScaler + RandomForestClassifier (800 depth-5 decision trees) pipeline.
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                 <span className="text-[11px] text-slate-500 font-medium">Verified Presets:</span>
                 {Object.entries(HEART_FAILURE_PRESETS).map(([key, preset]) => (
                   <button
                     key={key}
                     onClick={() => handleHfPresetSelect(key)}
-                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${
-                      selectedHfPresetKey === key
+                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${selectedHfPresetKey === key
                         ? "bg-slate-900 text-white font-medium"
                         : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                    }`}
+                      }`}
                   >
                     {preset.label.split(":")[0]}
                   </button>
@@ -1620,22 +2058,20 @@ export default function ClinicalDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, high_blood_pressure: 0 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.high_blood_pressure === 0
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.high_blood_pressure === 0
                           ? "bg-slate-900 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       No (0)
                     </button>
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, high_blood_pressure: 1 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.high_blood_pressure === 1
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.high_blood_pressure === 1
                           ? "bg-rose-600 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       Yes (1)
                     </button>
@@ -1654,22 +2090,20 @@ export default function ClinicalDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, diabetes: 0 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.diabetes === 0
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.diabetes === 0
                           ? "bg-slate-900 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       No (0)
                     </button>
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, diabetes: 1 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.diabetes === 1
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.diabetes === 1
                           ? "bg-amber-600 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       Yes (1)
                     </button>
@@ -1688,22 +2122,20 @@ export default function ClinicalDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, anaemia: 0 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.anaemia === 0
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.anaemia === 0
                           ? "bg-slate-900 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       No (0)
                     </button>
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, anaemia: 1 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.anaemia === 1
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.anaemia === 1
                           ? "bg-rose-600 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       Yes (1)
                     </button>
@@ -1722,22 +2154,20 @@ export default function ClinicalDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, smoking: 0 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.smoking === 0
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.smoking === 0
                           ? "bg-slate-900 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       No (0)
                     </button>
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, smoking: 1 })}
-                      className={`px-2 py-0.5 text-[10px] font-medium ${
-                        hfInputs.smoking === 1
+                      className={`px-2 py-0.5 text-[10px] font-medium ${hfInputs.smoking === 1
                           ? "bg-slate-700 text-white"
                           : "bg-slate-50 text-slate-600 hover:bg-slate-100"
-                      }`}
+                        }`}
                     >
                       Yes (1)
                     </button>
@@ -1819,22 +2249,20 @@ export default function ClinicalDashboardPage() {
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, sex: 0 })}
-                      className={`py-1 text-xs rounded font-medium text-center ${
-                        hfInputs.sex === 0
+                      className={`py-1 text-xs rounded font-medium text-center ${hfInputs.sex === 0
                           ? "bg-slate-900 text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
+                        }`}
                     >
                       Female (0)
                     </button>
                     <button
                       type="button"
                       onClick={() => setHfInputs({ ...hfInputs, sex: 1 })}
-                      className={`py-1 text-xs rounded font-medium text-center ${
-                        hfInputs.sex === 1
+                      className={`py-1 text-xs rounded font-medium text-center ${hfInputs.sex === 1
                           ? "bg-slate-900 text-white"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                      }`}
+                        }`}
                     >
                       Male (1)
                     </button>
@@ -1844,14 +2272,13 @@ export default function ClinicalDashboardPage() {
             </div>
 
             {/* Live result preview + run button */}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
-              <div className="flex items-center gap-3">
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
                 <span
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ${
-                    liveHfResult.predictionClass === 1
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 ${liveHfResult.predictionClass === 1
                       ? "bg-rose-600 text-white"
                       : "bg-emerald-600 text-white"
-                  }`}
+                    }`}
                 >
                   Live: {liveHfResult.statusLabel}
                 </span>
@@ -1864,9 +2291,624 @@ export default function ClinicalDashboardPage() {
               </div>
               <button
                 onClick={triggerAssessment}
-                className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>↻ Run Heart Failure Assessment</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeModelKey === "kidneyDisease" && showInputModal && (
+        <KidneyInputForm
+          inputs={kidneyInputs}
+          onChange={setKidneyInputs}
+          selectedPresetKey={selectedKidneyPresetKey}
+          onPresetSelect={handleKidneyPresetSelect}
+          liveResult={liveKidneyResult}
+          onRunAssessment={triggerAssessment}
+          onClose={() => setShowInputModal(false)}
+        />
+      )}
+
+      {/* ======================================================================= */}
+      {/* 3F. STROKE INTERACTIVE LAB INPUT FORM                                    */}
+      {/* ======================================================================= */}
+      {activeModelKey === "stroke" && showInputModal && (
+        <div className="bg-slate-50 border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-violet-500" />
+                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-700">
+                    Stroke Risk — Neurological Symptom Inputs (stroke_risk_dataset.csv)
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  15 binary neurological/cardiovascular symptoms + Age fed into StandardScaler + Logistic Regression (70,000 records, ROC-AUC 1.0).
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="text-[11px] text-slate-500 font-medium">Presets:</span>
+                {Object.entries(STROKE_PRESETS).map(([key, preset]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleStrokePresetSelect(key)}
+                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${selectedStrokePresetKey === key
+                        ? "bg-slate-900 text-white font-medium"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      }`}
+                  >
+                    {preset.label.split(":")[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-3 bg-white px-3.5 py-2 rounded-lg border border-slate-200/80 text-xs text-slate-600">
+              <span className="font-semibold text-slate-800">{STROKE_PRESETS[selectedStrokePresetKey]?.label}:</span>{" "}
+              {STROKE_PRESETS[selectedStrokePresetKey]?.description}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Cardiovascular Symptoms */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>🫀</span> Cardiovascular / Chest Symptoms
+                  </h4>
+                </div>
+                <div className="space-y-2">
+                  {(
+                    [
+                      ["chestPain", "Chest Pain"],
+                      ["shortnessOfBreath", "Shortness of Breath"],
+                      ["irregularHeartbeat", "Irregular Heartbeat"],
+                      ["highBloodPressure", "High Blood Pressure"],
+                      ["chestDiscomfortActivity", "Chest Discomfort on Activity"],
+                      ["excessiveSweating", "Excessive Sweating"],
+                      ["neckJawShoulderBackPain", "Neck / Jaw / Shoulder Pain"],
+                      ["edema", "Swelling / Edema"],
+                    ] as [keyof StrokeInputs, string][]
+                  ).map(([key, label]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <label className="text-[11px] font-medium text-slate-700">{label}</label>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setStrokeInputs({ ...strokeInputs, [key]: 0 })}
+                          className={`px-2 py-0.5 text-[10px] rounded border transition-all cursor-pointer ${strokeInputs[key] === 0 ? "bg-slate-700 text-white border-slate-700" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                            }`}
+                        >No</button>
+                        <button
+                          onClick={() => setStrokeInputs({ ...strokeInputs, [key]: 1 })}
+                          className={`px-2 py-0.5 text-[10px] rounded border transition-all cursor-pointer ${strokeInputs[key] === 1 ? "bg-rose-600 text-white border-rose-600" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                            }`}
+                        >Yes</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Neurological Symptoms + Age */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>🧠</span> Neurological / Systemic Symptoms
+                  </h4>
+                </div>
+                <div className="space-y-2">
+                  {(
+                    [
+                      ["fatigueWeakness", "Fatigue & Weakness"],
+                      ["dizziness", "Dizziness / Vertigo"],
+                      ["coldHandsFeet", "Cold Hands / Feet"],
+                      ["sleepApnea", "Snoring / Sleep Apnea"],
+                      ["persistentCough", "Persistent Cough"],
+                      ["nauseaVomiting", "Nausea / Vomiting"],
+                      ["anxietyDoom", "Anxiety / Feeling of Doom"],
+                    ] as [keyof StrokeInputs, string][]
+                  ).map(([key, label]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <label className="text-[11px] font-medium text-slate-700">{label}</label>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setStrokeInputs({ ...strokeInputs, [key]: 0 })}
+                          className={`px-2 py-0.5 text-[10px] rounded border transition-all cursor-pointer ${strokeInputs[key] === 0 ? "bg-slate-700 text-white border-slate-700" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                            }`}
+                        >No</button>
+                        <button
+                          onClick={() => setStrokeInputs({ ...strokeInputs, [key]: 1 })}
+                          className={`px-2 py-0.5 text-[10px] rounded border transition-all cursor-pointer ${strokeInputs[key] === 1 ? "bg-rose-600 text-white border-rose-600" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                            }`}
+                        >Yes</button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Age Slider */}
+                  <div className="pt-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-[11px] font-medium text-slate-700">Patient Age</label>
+                      <span className="text-[11px] font-mono font-bold text-slate-800">{strokeInputs.age} <span className="text-[9px] text-slate-400 font-normal">years</span></span>
+                    </div>
+                    <input
+                      type="range" min={18} max={90} step={1}
+                      value={strokeInputs.age}
+                      onChange={(e) => setStrokeInputs({ ...strokeInputs, age: parseInt(e.target.value) || 18 })}
+                      className="w-full accent-violet-600 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[9px] text-slate-400 mt-0.5">
+                      <span>18</span><span className="text-slate-400">Cohort: 18–90</span><span>90</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live result preview */}
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 ${liveStrokeResult.predictionClass === 1 ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+                  }`}>
+                  Live: {liveStrokeResult.statusLabel}
+                </span>
+                <span className="text-xs font-mono text-slate-700 font-semibold">
+                  {liveStrokeResult.probabilityPercent.toFixed(1)}% Stroke Risk Probability
+                </span>
+                <span className="text-[11px] text-slate-500">{liveStrokeResult.riskBand} Band</span>
+              </div>
+              <button
+                onClick={triggerAssessment}
+                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>↻ Run Stroke Assessment</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* 3G. CORONARY HEART DISEASE INTERACTIVE LAB INPUT FORM                    */}
+      {/* ======================================================================= */}
+      {activeModelKey === "heartDisease" && showInputModal && (
+        <div className="bg-slate-50 border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-red-500" />
+                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-700">
+                    Coronary Heart Disease — Clinical Biomarker Inputs (Cleveland Dataset)
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  13 cardiac features with StandardScaler + OneHotEncoder + Logistic Regression (1,025 records, ROC-AUC 0.923, Accuracy 86.7%).
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="text-[11px] text-slate-500 font-medium">Presets:</span>
+                {Object.entries(HEART_DISEASE_PRESETS).map(([key, preset]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleHdPresetSelect(key)}
+                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${selectedHdPresetKey === key
+                        ? "bg-slate-900 text-white font-medium"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      }`}
+                  >
+                    {preset.label.split(":")[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-3 bg-white px-3.5 py-2 rounded-lg border border-slate-200/80 text-xs text-slate-600">
+              <span className="font-semibold text-slate-800">{HEART_DISEASE_PRESETS[selectedHdPresetKey]?.label}:</span>{" "}
+              {HEART_DISEASE_PRESETS[selectedHdPresetKey]?.description}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Group 1: Demographics & Vitals */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>👤</span> Demographics & Vitals
+                  </h4>
+                </div>
+                {/* Age */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Age</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{hdInputs.age} <span className="text-[9px] text-slate-400">yrs</span></span>
+                  </div>
+                  <input type="range" min={29} max={77} step={1} value={hdInputs.age}
+                    onChange={(e) => setHdInputs({ ...hdInputs, age: parseInt(e.target.value) })}
+                    className="w-full accent-red-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>29</span><span className="text-emerald-600">Cohort: 29–77</span><span>77</span></div>
+                </div>
+                {/* Sex */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Sex</label>
+                  <div className="flex gap-1">
+                    {([0, 1] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, sex: v })}
+                        className={`flex-1 py-1 text-[10px] rounded border transition-all cursor-pointer ${hdInputs.sex === v ? "bg-slate-700 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{v === 0 ? "Female" : "Male"}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Resting BP */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Resting BP</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{hdInputs.trestbps} <span className="text-[9px] text-slate-400">mmHg</span></span>
+                  </div>
+                  <input type="range" min={94} max={200} step={1} value={hdInputs.trestbps}
+                    onChange={(e) => setHdInputs({ ...hdInputs, trestbps: parseInt(e.target.value) })}
+                    className="w-full accent-red-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>94</span><span className="text-emerald-600">Ref: &lt;120</span><span>200</span></div>
+                </div>
+                {/* Cholesterol */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Serum Cholesterol</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{hdInputs.chol} <span className="text-[9px] text-slate-400">mg/dL</span></span>
+                  </div>
+                  <input type="range" min={126} max={564} step={1} value={hdInputs.chol}
+                    onChange={(e) => setHdInputs({ ...hdInputs, chol: parseInt(e.target.value) })}
+                    className="w-full accent-red-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>126</span><span className="text-emerald-600">Ref: &lt;200</span><span>564</span></div>
+                </div>
+              </div>
+
+              {/* Group 2: Exercise ECG & Angina */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>📈</span> Exercise ECG & Angina
+                  </h4>
+                </div>
+                {/* Max HR */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Max Heart Rate (Thalach)</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{hdInputs.thalach} <span className="text-[9px] text-slate-400">bpm</span></span>
+                  </div>
+                  <input type="range" min={71} max={202} step={1} value={hdInputs.thalach}
+                    onChange={(e) => setHdInputs({ ...hdInputs, thalach: parseInt(e.target.value) })}
+                    className="w-full accent-red-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>71</span><span className="text-emerald-600">Ref: &gt;150</span><span>202</span></div>
+                </div>
+                {/* ST Depression */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">ST Depression (Oldpeak)</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{hdInputs.oldpeak.toFixed(1)} <span className="text-[9px] text-slate-400">mm</span></span>
+                  </div>
+                  <input type="range" min={0} max={6.2} step={0.1} value={hdInputs.oldpeak}
+                    onChange={(e) => setHdInputs({ ...hdInputs, oldpeak: parseFloat(e.target.value) })}
+                    className="w-full accent-red-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>0</span><span className="text-emerald-600">Ref: &lt;1.0</span><span>6.2</span></div>
+                </div>
+                {/* Exercise Angina */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Exercise-Induced Angina</label>
+                  <div className="flex gap-1">
+                    {([0, 1] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, exang: v })}
+                        className={`flex-1 py-1 text-[10px] rounded border transition-all cursor-pointer ${hdInputs.exang === v ? "bg-slate-700 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{v === 0 ? "No" : "Yes"}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Fasting Blood Sugar */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Fasting Blood Sugar &gt;120</label>
+                  <div className="flex gap-1">
+                    {([0, 1] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, fbs: v })}
+                        className={`flex-1 py-1 text-[10px] rounded border transition-all cursor-pointer ${hdInputs.fbs === v ? "bg-slate-700 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{v === 0 ? "No" : "Yes"}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Group 3: Chest Pain & Slope */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>🩺</span> Chest Pain & ST Slope
+                  </h4>
+                </div>
+                {/* Chest Pain Type */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Chest Pain Type (CP)</label>
+                  <div className="grid grid-cols-2 gap-1">
+                    {([0, 1, 2, 3] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, cp: v })}
+                        className={`py-1 text-[9px] rounded border transition-all cursor-pointer ${hdInputs.cp === v ? "bg-red-600 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{["Typical", "Atypical", "Non-Anginal", "Asymp"][v]}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* ST Slope */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Peak Exercise ST Slope</label>
+                  <div className="flex gap-1">
+                    {([0, 1, 2] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, slope: v })}
+                        className={`flex-1 py-1 text-[9px] rounded border transition-all cursor-pointer ${hdInputs.slope === v ? "bg-slate-700 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{["Up", "Flat", "Down"][v]}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* RestECG */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Resting ECG</label>
+                  <div className="flex gap-1">
+                    {([0, 1, 2] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, restecg: v })}
+                        className={`flex-1 py-1 text-[9px] rounded border transition-all cursor-pointer ${hdInputs.restecg === v ? "bg-slate-700 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{["Normal", "ST-T Abn", "LVH"][v]}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Group 4: Vessels & Thalassemia */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>🔬</span> Vessels & Thalassemia
+                  </h4>
+                </div>
+                {/* CA — major vessels */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Major Vessels (Fluoroscopy)</label>
+                  <div className="flex gap-1">
+                    {([0, 1, 2, 3] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, ca: v })}
+                        className={`flex-1 py-1 text-[10px] rounded border transition-all cursor-pointer ${hdInputs.ca === v ? "bg-red-600 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{v}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Thal */}
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Thalassemia</label>
+                  <div className="grid grid-cols-2 gap-1">
+                    {([0, 1, 2, 3] as const).map((v) => (
+                      <button key={v} onClick={() => setHdInputs({ ...hdInputs, thal: v })}
+                        className={`py-1 text-[9px] rounded border transition-all cursor-pointer ${hdInputs.thal === v ? "bg-slate-700 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{["Normal", "Fixed Def", "Reversible", "Other"][v]}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live result preview */}
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 ${liveHdResult.predictionClass === 1 ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+                  }`}>
+                  Live: {liveHdResult.statusLabel}
+                </span>
+                <span className="text-xs font-mono text-slate-700 font-semibold">
+                  {liveHdResult.probabilityPercent.toFixed(1)}% Coronary Risk Probability
+                </span>
+                <span className="text-[11px] text-slate-500">{liveHdResult.riskBand} Band</span>
+              </div>
+              <button
+                onClick={triggerAssessment}
+                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>↻ Run Coronary Assessment</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* 3H. LIVER DISEASE INTERACTIVE LAB INPUT FORM                             */}
+      {/* ======================================================================= */}
+      {activeModelKey === "liverDisease" && showInputModal && (
+        <div className="bg-slate-50 border-b border-slate-200/80 px-4 sm:px-6 lg:px-10 py-4 sm:py-5">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-700">
+                    Liver Disease — Hepatic Panel Inputs (ILPD Dataset)
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  10 standardized clinical biomarkers from the Indian Liver Patient Dataset fed into a Logistic Regression pipeline (583 records, ROC-AUC 0.749).
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="text-[11px] text-slate-500 font-medium">Presets:</span>
+                {Object.entries(LIVER_DISEASE_PRESETS).map(([key, preset]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleLiverPresetSelect(key)}
+                    className={`px-2.5 py-1 text-[11px] rounded transition-all cursor-pointer ${selectedLiverPresetKey === key
+                        ? "bg-slate-900 text-white font-medium"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                      }`}
+                  >
+                    {preset.label.split(":")[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-3 bg-white px-3.5 py-2 rounded-lg border border-slate-200/80 text-xs text-slate-600">
+              <span className="font-semibold text-slate-800">{LIVER_DISEASE_PRESETS[selectedLiverPresetKey]?.label}:</span>{" "}
+              {LIVER_DISEASE_PRESETS[selectedLiverPresetKey]?.description}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Group 1: Demographics */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>👤</span> Demographics
+                  </h4>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Age</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.age} <span className="text-[9px] text-slate-400">yrs</span></span>
+                  </div>
+                  <input type="range" min={4} max={90} step={1} value={liverInputs.age}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, age: parseInt(e.target.value) })}
+                    className="w-full accent-amber-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>4</span><span>Cohort: 4–90</span><span>90</span></div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-semibold text-slate-700 block mb-1">Gender</label>
+                  <div className="flex gap-1">
+                    {([0, 1] as const).map((v) => (
+                      <button key={v} onClick={() => setLiverInputs({ ...liverInputs, gender: v })}
+                        className={`flex-1 py-1 text-[10px] rounded border transition-all cursor-pointer ${liverInputs.gender === v ? "bg-slate-700 text-white" : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                          }`}>{v === 0 ? "Male" : "Female"}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Total Protein */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Total Proteins</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.totalProteins.toFixed(1)} <span className="text-[9px] text-slate-400">g/dL</span></span>
+                  </div>
+                  <input type="range" min={2.7} max={9.6} step={0.1} value={liverInputs.totalProteins}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, totalProteins: parseFloat(e.target.value) })}
+                    className="w-full accent-amber-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>2.7</span><span className="text-emerald-600">Ref: 6.0–8.3</span><span>9.6</span></div>
+                </div>
+              </div>
+
+              {/* Group 2: Bilirubin */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>🟡</span> Bilirubin & Liver Enzymes
+                  </h4>
+                </div>
+                {/* Total Bilirubin */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Total Bilirubin</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.totalBilirubin.toFixed(1)} <span className="text-[9px] text-slate-400">mg/dL</span></span>
+                  </div>
+                  <input type="range" min={0.4} max={75} step={0.1} value={liverInputs.totalBilirubin}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, totalBilirubin: parseFloat(e.target.value) })}
+                    className="w-full accent-amber-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>0.4</span><span className="text-emerald-600">Ref: 0.2–1.2</span><span>75</span></div>
+                </div>
+                {/* Direct Bilirubin */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Direct Bilirubin</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.directBilirubin.toFixed(1)} <span className="text-[9px] text-slate-400">mg/dL</span></span>
+                  </div>
+                  <input type="range" min={0.1} max={19.7} step={0.1} value={liverInputs.directBilirubin}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, directBilirubin: parseFloat(e.target.value) })}
+                    className="w-full accent-amber-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>0.1</span><span className="text-emerald-600">Ref: &lt;0.4</span><span>19.7</span></div>
+                </div>
+                {/* Alkaline Phosphatase */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Alkaline Phosphatase (ALP)</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.alkalinePhosphotase} <span className="text-[9px] text-slate-400">IU/L</span></span>
+                  </div>
+                  <input type="range" min={63} max={2110} step={1} value={liverInputs.alkalinePhosphotase}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, alkalinePhosphotase: parseInt(e.target.value) })}
+                    className="w-full accent-amber-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>63</span><span className="text-emerald-600">Ref: 44–147</span><span>2110</span></div>
+                </div>
+              </div>
+
+              {/* Group 3: Transaminases & Albumin */}
+              <div className="bg-white p-3.5 rounded-xl border border-slate-200/90 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-700 flex items-center gap-1.5">
+                    <span>🔴</span> Transaminases & Albumin
+                  </h4>
+                </div>
+                {/* ALT */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">ALT (SGPT)</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.alamineAminotransferase} <span className="text-[9px] text-slate-400">IU/L</span></span>
+                  </div>
+                  <input type="range" min={10} max={2000} step={1} value={liverInputs.alamineAminotransferase}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, alamineAminotransferase: parseInt(e.target.value) })}
+                    className="w-full accent-rose-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>10</span><span className="text-emerald-600">Ref: &lt;45</span><span>2000</span></div>
+                </div>
+                {/* AST */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">AST (SGOT)</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.aspartateAminotransferase} <span className="text-[9px] text-slate-400">IU/L</span></span>
+                  </div>
+                  <input type="range" min={10} max={4929} step={1} value={liverInputs.aspartateAminotransferase}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, aspartateAminotransferase: parseInt(e.target.value) })}
+                    className="w-full accent-rose-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>10</span><span className="text-emerald-600">Ref: &lt;40</span><span>4929</span></div>
+                </div>
+                {/* Albumin */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Albumin</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.albumin.toFixed(1)} <span className="text-[9px] text-slate-400">g/dL</span></span>
+                  </div>
+                  <input type="range" min={0.9} max={5.5} step={0.1} value={liverInputs.albumin}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, albumin: parseFloat(e.target.value) })}
+                    className="w-full accent-rose-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>0.9</span><span className="text-emerald-600">Ref: 3.5–5.0</span><span>5.5</span></div>
+                </div>
+                {/* A/G Ratio */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-semibold text-slate-700">Albumin/Globulin Ratio</label>
+                    <span className="text-[11px] font-mono font-bold text-slate-800">{liverInputs.albuminAndGlobulinRatio.toFixed(2)}</span>
+                  </div>
+                  <input type="range" min={0.3} max={2.8} step={0.01} value={liverInputs.albuminAndGlobulinRatio}
+                    onChange={(e) => setLiverInputs({ ...liverInputs, albuminAndGlobulinRatio: parseFloat(e.target.value) })}
+                    className="w-full accent-rose-600 cursor-pointer" />
+                  <div className="flex justify-between text-[9px] text-slate-400 mt-0.5"><span>0.30</span><span className="text-emerald-600">Ref: &gt;1.0</span><span>2.80</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Live result preview */}
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200">
+              <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shrink-0 ${liveLiverResult.predictionClass === 1 ? "bg-amber-600 text-white" : "bg-emerald-600 text-white"
+                  }`}>
+                  Live: {liveLiverResult.statusLabel}
+                </span>
+                <span className="text-xs font-mono text-slate-700 font-semibold">
+                  {liveLiverResult.probabilityPercent.toFixed(1)}% Liver Disease Probability
+                </span>
+                <span className="text-[11px] text-slate-500">{liveLiverResult.riskBand} Band</span>
+              </div>
+              <button
+                onClick={triggerAssessment}
+                className="w-full sm:w-auto px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold tracking-wider uppercase transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>↻ Run Liver Assessment</span>
               </button>
             </div>
           </div>
@@ -1876,7 +2918,7 @@ export default function ClinicalDashboardPage() {
       {/* ======================================================================= */}
       {/* 4. HERO ANATOMICAL WORKSPACE                                              */}
       {/* ======================================================================= */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-10 pt-8 pb-16">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 pt-6 sm:pt-8 pb-12 sm:pb-16">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* LEFT/CENTER: 2.5D Anatomical Digital Twin */}
           <div className="lg:col-span-7 flex flex-col items-center justify-center relative">
@@ -1892,8 +2934,10 @@ export default function ClinicalDashboardPage() {
               {activeModelKey === "breastCancer"
                 ? "Move cursor over tissue visualization for 2.5D perspective · Click hotspots to inspect cytological factors"
                 : activeModelKey === "anemia"
-                ? "Move cursor over erythrocytes for 2.5D perspective · Click hotspots to inspect hematological factors"
-                : "Move cursor over organ for 2.5D perspective · Click hotspots to inspect clinical factors"}
+                  ? "Move cursor over erythrocytes for 2.5D perspective · Click hotspots to inspect hematological factors"
+                  : activeModelKey === "kidneyDisease"
+                    ? "Domain visualization only — not a medical scan · Click hotspots to inspect contributing factors"
+                    : "Move cursor over organ for 2.5D perspective · Click hotspots to inspect clinical factors"}
             </p>
           </div>
 
@@ -1912,16 +2956,15 @@ export default function ClinicalDashboardPage() {
                 )}
               </div>
 
-              <div className="flex items-baseline gap-4 pt-1">
-                <span className="text-6xl lg:text-7xl font-semibold tracking-[-0.05em] text-slate-950 font-mono">
-                  {clinicalState === "ASSESSING" ? "--%"  : `${displayRisk}%`}
+              <div className="flex flex-wrap sm:flex-nowrap items-baseline gap-3 sm:gap-4 pt-1">
+                <span className="text-5xl sm:text-6xl lg:text-7xl font-semibold tracking-[-0.05em] text-slate-950 font-mono shrink-0">
+                  {clinicalState === "ASSESSING" ? "--%" : `${displayRisk}%`}
                 </span>
 
                 <div className="flex flex-col">
                   <span
-                    className={`text-sm font-bold tracking-wider uppercase ${
-                      isPredictionHighRisk ? "text-rose-600" : "text-emerald-600"
-                    }`}
+                    className={`text-sm font-bold tracking-wider uppercase ${isPredictionHighRisk ? "text-rose-600" : "text-emerald-600"
+                      }`}
                   >
                     {clinicalState === "ASSESSING" ? "CALCULATING..." : modelConfig.predictionStatus}
                   </span>
@@ -1933,12 +2976,17 @@ export default function ClinicalDashboardPage() {
                       {liveBcResult.histologicPattern} · {liveBcResult.riskClassification}
                     </span>
                   )}
+                  {activeModelKey === "kidneyDisease" && clinicalState === "RESULT" && (
+                    <span className="text-[10px] text-slate-500 font-mono mt-0.5">
+                      {liveKidneyResult.predictionClass} · {liveKidneyResult.ckdRiskLevel}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Model Classification note for Breast Cancer */}
               {activeModelKey === "breastCancer" && clinicalState === "RESULT" && (
-                <div className="pt-1 flex gap-4 text-[10px] font-mono text-slate-500">
+                <div className="pt-1 flex flex-wrap gap-2 sm:gap-4 text-[10px] font-mono text-slate-500">
                   <span>
                     MODEL CLASSIFICATION:{" "}
                     <strong className={liveBcResult.predictionClass === 1 ? "text-rose-600" : "text-emerald-600"}>
@@ -1951,6 +2999,28 @@ export default function ClinicalDashboardPage() {
                       {liveBcResult.logit > 0 ? "+" : ""}
                       {liveBcResult.logit.toFixed(2)}
                     </strong>
+                  </span>
+                </div>
+              )}
+              {activeModelKey === "kidneyDisease" && clinicalState === "RESULT" && (
+                <div className="pt-1 flex flex-wrap gap-2 sm:gap-4 text-[10px] font-mono text-slate-500">
+                  <span>
+                    CLASS:{" "}
+                    <strong className={liveKidneyResult.stageIndex >= 2 ? "text-rose-600" : "text-emerald-600"}>
+                      {liveKidneyResult.predictionClass}
+                    </strong>
+                  </span>
+                  <span>
+                    OUTPUT PROBABILITY:{" "}
+                    <strong className="text-slate-700">{liveKidneyResult.probabilityPercent}%</strong>
+                  </span>
+                  <span>
+                    RISK SCORE:{" "}
+                    <strong className="text-slate-700">{liveKidneyResult.riskScore}</strong>
+                  </span>
+                  <span>
+                    BAND:{" "}
+                    <strong className="text-slate-700">{liveKidneyResult.ckdRiskLevel}</strong>
                   </span>
                 </div>
               )}
@@ -1976,35 +3046,33 @@ export default function ClinicalDashboardPage() {
                     <div
                       key={factor.id}
                       onClick={() => setSelectedFactorId(isSelected ? null : factor.id)}
-                      className={`group flex items-center justify-between p-3 rounded-lg border transition-all duration-200 cursor-pointer ${
-                        isSelected
+                      className={`group flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-lg border transition-all duration-200 cursor-pointer ${isSelected
                           ? "bg-rose-50/70 border-rose-300 shadow-sm"
                           : "bg-white hover:bg-slate-50 border-slate-200/70"
-                      }`}
+                        }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                         <span
-                          className={`w-2 h-2 rounded-full transition-colors ${
-                            isSelected
+                          className={`w-2 h-2 rounded-full shrink-0 transition-colors ${isSelected
                               ? "bg-rose-500"
                               : "bg-slate-300 group-hover:bg-rose-400"
-                          }`}
+                            }`}
                         />
-                        <div>
-                          <div className="text-xs font-semibold text-slate-900 flex items-center gap-2">
-                            <span>{factor.label}</span>
-                            <span className="text-[10px] font-normal text-slate-500">
+                        <div className="min-w-0">
+                          <div className="text-xs font-semibold text-slate-900 flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+                            <span className="truncate">{factor.label}</span>
+                            <span className="text-[10px] font-normal text-slate-500 truncate">
                               · {factor.category}
                             </span>
                           </div>
-                          <div className="text-[11px] font-mono text-slate-600 mt-0.5">
+                          <div className="text-[11px] font-mono text-slate-600 mt-0.5 truncate">
                             {factor.valueDisplay}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-rose-700 bg-rose-100/70 px-2 py-0.5 rounded">
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs font-mono font-bold text-rose-700 bg-rose-100/70 px-2 py-0.5 rounded whitespace-nowrap">
                           +{factor.contribution}%
                         </span>
                       </div>
@@ -2050,11 +3118,14 @@ export default function ClinicalDashboardPage() {
             <div className="flex items-center gap-2.5 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-slate-900" />
               <h2 className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600">
-                NEXUS Clinical AI Reasoning
+
+                Vitaweave Clinical AI Reasoning
               </h2>
             </div>
             <h3 className="text-lg font-semibold tracking-tight text-slate-900 mb-2">
-              Why did the model classify this patient as {modelConfig.predictionStatus}?
+              {activeModelKey === "kidneyDisease"
+                ? `Why did the assessment return ${modelConfig.predictionStatus}?`
+                : `Why did the model classify this patient as ${modelConfig.predictionStatus}?`}
             </h3>
             <p className="text-sm text-slate-600 leading-relaxed">{modelConfig.aiReasoning}</p>
 
@@ -2093,7 +3164,7 @@ export default function ClinicalDashboardPage() {
         {/* ======================================================================= */}
         {/* 6. CLINICAL CONSIDERATIONS                                               */}
         {/* ======================================================================= */}
-        <section className="mt-10 p-6 rounded-xl bg-white border border-slate-200 shadow-xs">
+        <section className="mt-10 p-4 sm:p-6 rounded-xl bg-white border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2.5">
               <span className="h-2 w-2 rounded-full bg-rose-500" />
@@ -2154,7 +3225,7 @@ export default function ClinicalDashboardPage() {
             </div>
           </div>
 
-          <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-500 uppercase tracking-wider font-mono">
+          <div className="mt-5 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[10px] text-slate-500 uppercase tracking-wider font-mono">
             <span>{modelConfig.clinicalConsiderations.disclaimer}</span>
             <span>NEXUS Clinical Safety Protocol v2.4</span>
           </div>
@@ -2163,7 +3234,7 @@ export default function ClinicalDashboardPage() {
         {/* ======================================================================= */}
         {/* 7. DOWNSTREAM HOSPITAL SIGNAL                                            */}
         {/* ======================================================================= */}
-        <section className="mt-8 p-6 rounded-xl bg-slate-900 text-white shadow-xl">
+        <section className="mt-8 p-4 sm:p-6 rounded-xl bg-slate-900 text-white shadow-xl">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="max-w-xl">
               <div className="flex items-center gap-2 mb-1.5">
@@ -2180,7 +3251,7 @@ export default function ClinicalDashboardPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
               {modelConfig.downstreamSignal.metrics.map((metric, idx) => (
                 <div
                   key={idx}
@@ -2216,7 +3287,7 @@ export default function ClinicalDashboardPage() {
       {/* ======================================================================= */}
       {showCopilot && (
         <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-xs">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between border-l border-slate-200">
+          <div className="w-full sm:max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between border-l border-slate-200">
             {/* Copilot Header */}
             <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-3">
@@ -2226,7 +3297,9 @@ export default function ClinicalDashboardPage() {
                     NEXUS AI · Clinical Copilot
                   </h3>
                   <span className="text-[10px] uppercase tracking-wider text-slate-500">
-                    Context: {modelConfig.name} ({modelConfig.patient.id})
+                    {activeModelKey === "kidneyDisease"
+                      ? "Context: Kidney Disease Prediction"
+                      : `Context: ${modelConfig.name} (${modelConfig.patient.id})`}
                   </span>
                 </div>
               </div>
@@ -2276,11 +3349,10 @@ export default function ClinicalDashboardPage() {
                   className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
                 >
                   <div
-                    className={`max-w-[88%] p-3.5 rounded-xl text-xs leading-relaxed ${
-                      msg.sender === "user"
+                    className={`max-w-[88%] p-3.5 rounded-xl text-xs leading-relaxed ${msg.sender === "user"
                         ? "bg-slate-900 text-white rounded-br-none"
                         : "bg-slate-100 text-slate-800 rounded-bl-none border border-slate-200/70"
-                    }`}
+                      }`}
                   >
                     {msg.text}
                   </div>
@@ -2356,10 +3428,10 @@ export default function ClinicalDashboardPage() {
                     activeModelKey === "heartFailure"
                       ? "Ask NEXUS about this heart failure assessment..."
                       : activeModelKey === "diabetes"
-                      ? "Ask NEXUS about this diabetes assessment..."
-                      : activeModelKey === "breastCancer"
-                      ? "Ask NEXUS about this breast cancer assessment..."
-                      : "Ask NEXUS about this patient..."
+                        ? "Ask NEXUS about this diabetes assessment..."
+                        : activeModelKey === "breastCancer"
+                          ? "Ask NEXUS about this breast cancer assessment..."
+                          : "Ask NEXUS about this patient..."
                   }
                   value={copilotInputText}
                   onChange={(e) => setCopilotInputText(e.target.value)}

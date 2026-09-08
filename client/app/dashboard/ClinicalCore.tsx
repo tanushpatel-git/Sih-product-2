@@ -75,6 +75,30 @@ export default function ClinicalCore({
     []
   );
 
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (!containerRef.current || e.touches.length === 0) return;
+      const touch = e.touches[0];
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      const dx = Math.max(-1, Math.min(1, (x / rect.width - 0.5) * 2));
+      const dy = Math.max(-1, Math.min(1, (y / rect.height - 0.5) * 2));
+
+      setIsHovered(true);
+      setMouseOffset({ dx, dy });
+    },
+    []
+  );
+
+  const handleTouchStart = () => setIsHovered(true);
+  const handleTouchEnd = () => {
+    setIsHovered(false);
+    setMouseOffset({ dx: 0, dy: 0 });
+    setHoveredFactorId(null);
+  };
+
   const handleMouseEnter = () => setIsHovered(true);
   const handleMouseLeave = () => {
     setIsHovered(false);
@@ -93,14 +117,17 @@ export default function ClinicalCore({
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full h-[540px] lg:h-[600px] flex items-center justify-center select-none overflow-visible"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className="relative w-full h-[360px] sm:h-[460px] lg:h-[600px] flex items-center justify-center select-none overflow-hidden sm:overflow-visible"
       style={{ perspective: "1100px" }}
     >
       {/* ========================================================================= */}
       {/* LAYER 0: Ambient Depth & Physics-Based Perspective Shadow */}
       {/* ========================================================================= */}
       <div
-        className="absolute left-1/2 top-1/2 h-[420px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-500/[0.045] blur-[110px] pointer-events-none transition-transform duration-700 ease-out"
+        className="absolute left-1/2 top-1/2 h-[260px] w-[260px] sm:h-[420px] sm:w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-sky-500/[0.045] blur-[80px] sm:blur-[110px] pointer-events-none transition-transform duration-700 ease-out"
         style={{
           transform: `translate(calc(-50% + ${shadowTranslateX * 0.4}px), calc(-50% + ${shadowTranslateY * 0.4}px))`,
         }}
@@ -108,7 +135,7 @@ export default function ClinicalCore({
 
       {/* Subtle floor contact shadow */}
       <div
-        className="absolute bottom-[8%] left-1/2 -translate-x-1/2 w-[340px] h-[34px] rounded-full bg-slate-800/[0.07] blur-[22px] pointer-events-none transition-transform duration-500 ease-out"
+        className="absolute bottom-[8%] left-1/2 -translate-x-1/2 w-[220px] sm:w-[340px] h-[24px] sm:h-[34px] rounded-full bg-slate-800/[0.07] blur-[16px] sm:blur-[22px] pointer-events-none transition-transform duration-500 ease-out"
         style={{
           transform: `translate(calc(-50% + ${shadowTranslateX}px), ${shadowTranslateY * 0.5}px) scale(${
             1 - Math.abs(mouseOffset.dy) * 0.08
@@ -312,10 +339,10 @@ export default function ClinicalCore({
 
         {/* Primary Signal Fixed Callout Label (Top Right) */}
         {state !== "ASSESSING" && (
-          <div className="absolute right-[4%] top-[18%] pointer-events-auto">
-            <div className="flex items-center gap-2.5 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/80 shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-600">
+          <div className="absolute right-2 top-2 sm:right-[4%] sm:top-[18%] pointer-events-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 bg-white/90 sm:bg-white/80 backdrop-blur-md px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full border border-slate-200/80 shadow-xs sm:shadow-sm">
+              <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+              <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.2em] text-slate-600 whitespace-nowrap">
                 {config.primarySignal.label}
               </span>
             </div>
@@ -323,25 +350,25 @@ export default function ClinicalCore({
         )}
 
         {/* Dynamic State Overlay Indicator (Center Bottom) */}
-        <div className="absolute bottom-[3%] left-1/2 -translate-x-1/2 pointer-events-auto">
+        <div className="absolute bottom-[2%] sm:bottom-[3%] left-1/2 -translate-x-1/2 pointer-events-auto w-max max-w-[95%]">
           {state === "IDLE" && (
             <button
               onClick={onTriggerAssess}
-              className="group flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium tracking-wide shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+              className="group flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-[11px] sm:text-xs font-medium tracking-wide shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0"
             >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>RUN CLINICAL ASSESSMENT</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
+              <span className="whitespace-nowrap">RUN CLINICAL ASSESSMENT</span>
               <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform">→</span>
             </button>
           )}
 
           {state === "ASSESSING" && (
-            <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-amber-200 shadow-md">
-              <span className="relative flex h-2.5 w-2.5">
+            <div className="flex items-center gap-2.5 sm:gap-3 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-full bg-white/95 backdrop-blur-md border border-amber-200 shadow-md">
+              <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                <span className="relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 bg-amber-500" />
               </span>
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-800">
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.15em] sm:tracking-[0.22em] text-slate-800 whitespace-nowrap truncate">
                 {assessingPhase === "INGESTING" && "ANALYZING CLINICAL SIGNALS"}
                 {assessingPhase === "SCANNING" && `SCANNING ${config.scanLabel}`}
                 {assessingPhase === "CALCULATING" && "CALCULATING RISK ATTRIBUTION"}
@@ -352,7 +379,7 @@ export default function ClinicalCore({
           {state === "RESULT" && (
             <button
               onClick={onTriggerAssess}
-              className="text-[11px] font-medium tracking-wider uppercase text-slate-600 hover:text-slate-800 px-3 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors"
+              className="text-[10px] sm:text-[11px] font-medium tracking-wider uppercase text-slate-600 hover:text-slate-800 px-3 py-1 rounded-full sm:rounded bg-slate-100 hover:bg-slate-200 transition-colors shadow-xs sm:shadow-none"
             >
               ↻ RE-RUN ASSESSMENT
             </button>
