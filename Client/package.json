@@ -1,0 +1,10 @@
+{
+  "name": " Client",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "cd pulserate && npm run dev",
+    "build": "cd pulserate && npm run build",
+    "start": "cd pulserate && npm run start",
+    "lint": "cd pulserate && npm run lint"
+  }
+}

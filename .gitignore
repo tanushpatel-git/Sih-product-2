@@ -11,6 +11,9 @@ venv_*/
 .pytest_cache/
 services/ai/__pycache__/
 
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
 # --- Node ---
 node_modules/
 .next/
