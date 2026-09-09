@@ -31,11 +31,7 @@ const hotspots = [
   },
 ];
 
-interface PatientHeroProps {
-  onAiClick: () => void;
-}
-
-export default function PatientHero({ onAiClick }: PatientHeroProps) {
+export default function PatientHero() {
   const [activeHotspot, setActiveHotspot] = useState("heart-rate");
 
   const mouseX = useMotionValue(0);
@@ -165,7 +161,6 @@ export default function PatientHero({ onAiClick }: PatientHeroProps) {
           </button>
 
           <button
-            onClick={onAiClick}
             className="flex items-center gap-2 rounded-[13px] border border-[#cbdad4] bg-white/60 px-5 py-3 text-[10px] text-[#59746b] backdrop-blur-xl transition hover:bg-white"
           >
             <Sparkles size={13} />

@@ -46,11 +46,7 @@ const secondaryNavigation = [
   },
 ];
 
-interface PatientSidebarProps {
-  onAiClick: () => void;
-}
-
-export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
+export default function PatientSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[245px] border-r border-[#e1e7e4] bg-[#f8faf9] px-5 py-6 lg:flex lg:flex-col">
       {/* Logo */}
@@ -138,11 +134,6 @@ export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
             return (
               <button
                 key={item.label}
-                onClick={() => {
-                  if (item.label === "TLUX") {
-                    onAiClick();
-                  }
-                }}
                 className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-[#71807a] transition hover:bg-[#edf2ef] hover:text-[#17221f]"
               >
                 <Icon size={15} strokeWidth={1.8} />

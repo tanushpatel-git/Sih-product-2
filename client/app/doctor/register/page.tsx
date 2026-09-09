@@ -6,16 +6,11 @@ import { motion } from "framer-motion";
 import {
   Activity,
   ArrowRight,
-  Building2,
-  Check,
   ChevronDown,
   Eye,
   EyeOff,
-  Hospital,
   Mail,
-  Phone,
   ShieldCheck,
-  Stethoscope,
   UserRound,
 } from "lucide-react";
 
@@ -26,14 +21,10 @@ export function DoctorRegisterPage() {
   const [form, setForm] = useState({
     fullName: "",
     email: "",
-    phone: "",
-    specialization: "",
-    registrationNumber: "",
-    experience: "",
-    hospital: "",
+    specialty: "",
+    licenseNumber: "",
     password: "",
     confirmPassword: "",
-    terms: false,
   });
 
   const updateField = (field: string, value: string | boolean) => {
@@ -48,11 +39,6 @@ export function DoctorRegisterPage() {
 
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match.");
-      return;
-    }
-
-    if (!form.terms) {
-      alert("Please accept the professional terms.");
       return;
     }
 
@@ -87,7 +73,7 @@ export function DoctorRegisterPage() {
             {/* Main */}
             <div>
               <div className="mb-7 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#4c756c]">
-                <Stethoscope size={14} />
+                <UserRound size={14} />
                 Professional onboarding
               </div>
 
@@ -195,7 +181,7 @@ export function DoctorRegisterPage() {
                   <UserRound size={15} className="text-[#4c756c]" />
 
                   <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/45">
-                    Professional identity
+                    Professional information
                   </h3>
                 </div>
 
@@ -217,7 +203,7 @@ export function DoctorRegisterPage() {
                     />
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="mb-2 block text-xs font-medium text-black/55">
                       Professional email
                     </label>
@@ -243,56 +229,19 @@ export function DoctorRegisterPage() {
 
                   <div>
                     <label className="mb-2 block text-xs font-medium text-black/55">
-                      Phone number
-                    </label>
-
-                    <div className="relative">
-                      <Phone
-                        size={16}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-black/25"
-                      />
-
-                      <input
-                        type="tel"
-                        value={form.phone}
-                        onChange={(event) =>
-                          updateField("phone", event.target.value)
-                        }
-                        placeholder="+91 98765 43210"
-                        required
-                        className="h-13 w-full rounded-2xl border border-black/[0.08] bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-black/25 focus:border-[#5b8279] focus:ring-4 focus:ring-[#5b8279]/10"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* CLINICAL PROFILE */}
-              <section>
-                <div className="mb-4 flex items-center gap-2">
-                  <Stethoscope size={15} className="text-[#4c756c]" />
-
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/45">
-                    Clinical profile
-                  </h3>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="mb-2 block text-xs font-medium text-black/55">
-                      Specialization
+                      Specialty
                     </label>
 
                     <div className="relative">
                       <select
-                        value={form.specialization}
+                        value={form.specialty}
                         onChange={(event) =>
-                          updateField("specialization", event.target.value)
+                          updateField("specialty", event.target.value)
                         }
                         required
                         className="h-13 w-full appearance-none rounded-2xl border border-black/[0.08] bg-white px-4 pr-11 text-sm text-black/70 outline-none transition focus:border-[#5b8279] focus:ring-4 focus:ring-[#5b8279]/10"
                       >
-                        <option value="">Select specialization</option>
+                        <option value="">Select specialty</option>
                         <option value="general-medicine">
                           General Medicine
                         </option>
@@ -318,81 +267,20 @@ export function DoctorRegisterPage() {
 
                   <div>
                     <label className="mb-2 block text-xs font-medium text-black/55">
-                      Years of experience
-                    </label>
-
-                    <div className="relative">
-                      <select
-                        value={form.experience}
-                        onChange={(event) =>
-                          updateField("experience", event.target.value)
-                        }
-                        required
-                        className="h-13 w-full appearance-none rounded-2xl border border-black/[0.08] bg-white px-4 pr-11 text-sm text-black/70 outline-none transition focus:border-[#5b8279] focus:ring-4 focus:ring-[#5b8279]/10"
-                      >
-                        <option value="">Select experience</option>
-                        <option value="0-2">0–2 years</option>
-                        <option value="3-5">3–5 years</option>
-                        <option value="6-10">6–10 years</option>
-                        <option value="11-15">11–15 years</option>
-                        <option value="16+">16+ years</option>
-                      </select>
-
-                      <ChevronDown
-                        size={16}
-                        className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-black/30"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="mb-2 block text-xs font-medium text-black/55">
-                      Medical registration number
+                      License number
                     </label>
 
                     <input
                       type="text"
-                      value={form.registrationNumber}
+                      value={form.licenseNumber}
                       onChange={(event) =>
-                        updateField(
-                          "registrationNumber",
-                          event.target.value
-                        )
+                        updateField("licenseNumber", event.target.value)
                       }
-                      placeholder="Enter professional registration number"
+                      placeholder="Enter professional license number"
                       required
                       className="h-13 w-full rounded-2xl border border-black/[0.08] bg-white px-4 text-sm outline-none transition placeholder:text-black/25 focus:border-[#5b8279] focus:ring-4 focus:ring-[#5b8279]/10"
                     />
                   </div>
-                </div>
-              </section>
-
-              {/* AFFILIATION */}
-              <section>
-                <div className="mb-4 flex items-center gap-2">
-                  <Hospital size={15} className="text-[#4c756c]" />
-
-                  <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/45">
-                    Hospital affiliation
-                  </h3>
-                </div>
-
-                <div className="relative">
-                  <Building2
-                    size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-black/25"
-                  />
-
-                  <input
-                    type="text"
-                    value={form.hospital}
-                    onChange={(event) =>
-                      updateField("hospital", event.target.value)
-                    }
-                    placeholder="Hospital or healthcare organization"
-                    required
-                    className="h-13 w-full rounded-2xl border border-black/[0.08] bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-black/25 focus:border-[#5b8279] focus:ring-4 focus:ring-[#5b8279]/10"
-                  />
                 </div>
               </section>
 
@@ -402,7 +290,7 @@ export function DoctorRegisterPage() {
                   <ShieldCheck size={15} className="text-[#4c756c]" />
 
                   <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-black/45">
-                    Secure workspace
+                    Security
                   </h3>
                 </div>
 
@@ -475,24 +363,6 @@ export function DoctorRegisterPage() {
                 </div>
               </section>
 
-              {/* TERMS */}
-              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-black/[0.06] bg-white/60 p-4">
-                <input
-                  type="checkbox"
-                  checked={form.terms}
-                  onChange={(event) =>
-                    updateField("terms", event.target.checked)
-                  }
-                  className="mt-0.5 h-4 w-4 rounded border-black/15 accent-[#4c756c]"
-                />
-
-                <span className="text-xs leading-5 text-black/45">
-                  I confirm that the professional information provided is
-                  accurate and agree to the VITAWEAVE professional terms and
-                  clinical decision-support guidelines.
-                </span>
-              </label>
-
               {/* SUBMIT */}
               <motion.button
                 whileHover={{ y: -1 }}
@@ -511,7 +381,7 @@ export function DoctorRegisterPage() {
 
             {/* Verification note */}
             <div className="mt-7 flex items-start gap-3 text-[11px] leading-5 text-black/35">
-              <Check size={15} className="mt-0.5 shrink-0 text-[#4c756c]" />
+              <Activity size={15} className="mt-0.5 shrink-0 text-[#4c756c]" />
 
               <p>
                 Professional verification can be completed before clinical
