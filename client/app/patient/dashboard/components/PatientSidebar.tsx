@@ -3,54 +3,57 @@
 import {
   Activity,
   HeartPulse,
-  CalendarDays,
-  FileText,
   Sparkles,
   Settings,
   ShieldCheck,
   UserRound,
   LayoutDashboard,
+  LogOut,
 } from "lucide-react";
-
-const navigation = [
-  {
-    label: "Overview",
-    icon: LayoutDashboard,
-    active: true,
-  },
-  {
-    label: "My Health",
-    icon: HeartPulse,
-    active: false,
-  },
-  {
-    label: "Appointments",
-    icon: CalendarDays,
-    active: false,
-  },
-  {
-    label: "Medical Records",
-    icon: FileText,
-    active: false,
-  },
-];
-
-const secondaryNavigation = [
-  {
-    label: "TLUX",
-    icon: Sparkles,
-  },
-  {
-    label: "Settings",
-    icon: Settings,
-  },
-];
 
 interface PatientSidebarProps {
   onAiClick: () => void;
+  activeTab?: "overview" | "medicalAnalysis";
+  onTabChange?: (tab: "overview" | "medicalAnalysis") => void;
+  onLogout?: () => void;
+  patientName?: string;
 }
 
-export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
+export default function PatientSidebar({
+  onAiClick,
+  activeTab = "overview",
+  onTabChange,
+  onLogout,
+  patientName,
+}: PatientSidebarProps) {
+  const navigation = [
+    {
+      key: "overview" as const,
+      label: "Overview",
+      icon: LayoutDashboard,
+    },
+    {
+      key: "medicalAnalysis" as const,
+      label: "Medical Analysis",
+      icon: HeartPulse,
+    },
+  ];
+
+  const secondaryNavigation = [
+    {
+      label: "TLUX",
+      icon: Sparkles,
+    },
+    {
+      label: "Settings",
+      icon: Settings,
+    },
+    {
+      label: "Sign Out",
+      icon: LogOut,
+    },
+  ];
+
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[245px] border-r border-[#e1e7e4] bg-[#f8faf9] px-5 py-6 lg:flex lg:flex-col">
       {/* Logo */}
@@ -83,7 +86,7 @@ export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
 
           <div className="min-w-0">
             <p className="truncate text-[11px] font-medium">
-              Vedant Gupta
+              {patientName || "Patient"}
             </p>
 
             <p className="mt-0.5 text-[8px] text-[#929d99]">
@@ -104,12 +107,14 @@ export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
         <nav className="space-y-1">
           {navigation.map((item) => {
             const Icon = item.icon;
+            const isActive = activeTab === item.key;
 
             return (
               <button
                 key={item.label}
+                onClick={() => onTabChange?.(item.key)}
                 className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-left transition ${
-                  item.active
+                  isActive
                     ? "bg-[#17221f] text-white shadow-[0_8px_20px_rgba(23,34,31,0.12)]"
                     : "text-[#71807a] hover:bg-[#edf2ef] hover:text-[#17221f]"
                 }`}
@@ -141,6 +146,8 @@ export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
                 onClick={() => {
                   if (item.label === "TLUX") {
                     onAiClick();
+                  } else if (item.label === "Sign Out") {
+                    onLogout?.();
                   }
                 }}
                 className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-[#71807a] transition hover:bg-[#edf2ef] hover:text-[#17221f]"

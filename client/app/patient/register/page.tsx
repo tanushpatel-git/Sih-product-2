@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 export function RegisterPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -55,10 +57,34 @@ export function RegisterPage() {
       return;
     }
 
-    console.log({
-      ...form,
-      agreed,
-    });
+    const userData = {
+      fullName: form.fullName.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      dateOfBirth: form.dateOfBirth,
+      gender: form.gender,
+    };
+
+    try {
+      if (typeof window !== "undefined") {
+        const registered = JSON.parse(localStorage.getItem("vitaweave_patients") || "[]");
+        const idx = registered.findIndex((u: any) => u.email?.toLowerCase() === userData.email.toLowerCase());
+        if (idx >= 0) {
+          registered[idx] = userData;
+        } else {
+          registered.push(userData);
+        }
+        localStorage.setItem("vitaweave_patients", JSON.stringify(registered));
+        localStorage.setItem("vitaweave_patient_session", JSON.stringify({
+          authenticated: true,
+          user: userData,
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    router.push("/patient/dashboard");
   };
 
   return (

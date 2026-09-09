@@ -23,10 +23,40 @@ export function LoginPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log({
-      email,
-      password,
-    });
+    let userData: { email: string; fullName: string; phone?: string } = {
+      email: email.trim(),
+      fullName: "",
+    };
+
+    try {
+      if (typeof window !== "undefined") {
+        const registered = JSON.parse(localStorage.getItem("vitaweave_patients") || "[]");
+        const found = registered.find(
+          (u: any) => u.email?.toLowerCase() === email.trim().toLowerCase()
+        );
+        if (found && found.fullName) {
+          userData = found;
+        } else {
+          // Format a clean fallback display name from email (e.g. john.doe -> John Doe)
+          const localPart = email.split("@")[0] || "Patient";
+          const formatted = localPart
+            .replace(/[._-]+/g, " ")
+            .trim()
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+          userData.fullName = formatted || "Patient";
+        }
+
+        localStorage.setItem(
+          "vitaweave_patient_session",
+          JSON.stringify({
+            authenticated: true,
+            user: userData,
+          })
+        );
+      }
+    } catch (e) {
+      console.error(e);
+    }
 
     // Redirect to patient dashboard
     router.push("/patient/dashboard");
