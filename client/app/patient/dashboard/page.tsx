@@ -5,8 +5,6 @@ import PatientTopBar from "./components/PatientTopBar";
 import PatientHero from "./components/PatientHero";
 import PatientHealthMetrics from "./components/PatientHealthMetrics";
 import PatientHealthTrend from "./components/PatientHealthTrend";
-import PatientAppointments from "./components/PatientAppointments";
-import PatientRecords from "./components/PatientRecords";
 import PatientClinicalNote from "./components/PatientClinicalNote";
 import PatientFooter from "./components/PatientFooter";
 import TluxFloatingButton from "./components/TluxFloatingButton";
@@ -30,26 +28,30 @@ export default function Page() {
             {/* HEALTH METRICS */}
             <PatientHealthMetrics />
 
-            {/* HEALTH TREND */}
-            <section className="mt-5">
-              <PatientHealthTrend />
-            </section>
+          {activeTab === "overview" ? (
+            <div className="mx-auto max-w-[1450px] px-5 py-6 md:px-8 md:py-8">
+              {/* HERO */}
+              <PatientHero onAiClick={() => setShowTlux(true)} />
 
-            {/* APPOINTMENTS + RECORDS */}
-            <section className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[1fr_1fr]">
-              {/* Appointments */}
-              <PatientAppointments />
+              {/* HEALTH METRICS */}
+              <PatientHealthMetrics />
 
-              {/* Medical records */}
-              <PatientRecords />
-            </section>
+              {/* HEALTH TREND */}
+              <section className="mt-5">
+                <PatientHealthTrend />
+              </section>
 
-            {/* CLINICAL NOTE */}
-            <PatientClinicalNote />
+              {/* CLINICAL NOTE */}
+              <PatientClinicalNote />
 
-            {/* Footer */}
-            <PatientFooter />
-          </div>
+              {/* Footer */}
+              <PatientFooter />
+            </div>
+          ) : (
+            <div className="min-w-0 flex-1">
+              <ClinicalDashboardPage />
+            </div>
+          )}
         </section>
       </div>
 

@@ -3,13 +3,12 @@
 import {
   Activity,
   HeartPulse,
-  CalendarDays,
-  FileText,
   Sparkles,
   Settings,
   ShieldCheck,
   UserRound,
   LayoutDashboard,
+  LogOut,
 } from "lucide-react";
 
 const navigation = [
@@ -79,7 +78,7 @@ export default function PatientSidebar() {
 
           <div className="min-w-0">
             <p className="truncate text-[11px] font-medium">
-              Vedant Gupta
+              {patientName || "Patient"}
             </p>
 
             <p className="mt-0.5 text-[8px] text-[#929d99]">
@@ -100,12 +99,14 @@ export default function PatientSidebar() {
         <nav className="space-y-1">
           {navigation.map((item) => {
             const Icon = item.icon;
+            const isActive = activeTab === item.key;
 
             return (
               <button
                 key={item.label}
+                onClick={() => onTabChange?.(item.key)}
                 className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-left transition ${
-                  item.active
+                  isActive
                     ? "bg-[#17221f] text-white shadow-[0_8px_20px_rgba(23,34,31,0.12)]"
                     : "text-[#71807a] hover:bg-[#edf2ef] hover:text-[#17221f]"
                 }`}

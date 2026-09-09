@@ -2,7 +2,9 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { DOCTOR_STORAGE_KEY, DOCTOR_ACCOUNTS_KEY } from "../doctorAuth";
 import {
   Activity,
   ArrowRight,
@@ -15,6 +17,7 @@ import {
 } from "lucide-react";
 
 export function DoctorRegisterPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -42,7 +45,28 @@ export function DoctorRegisterPage() {
       return;
     }
 
-    console.log(form);
+    const doctorProfile = {
+      name: form.fullName || "Dr. Doctor",
+      email: form.email,
+      specialty: form.specialty || "General Medicine",
+      licenseNumber: form.licenseNumber || "LIC-IN-2026",
+    };
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(DOCTOR_STORAGE_KEY, JSON.stringify(doctorProfile));
+        const accountsRaw = localStorage.getItem(DOCTOR_ACCOUNTS_KEY);
+        const accounts = accountsRaw ? JSON.parse(accountsRaw) : {};
+        if (form.email) {
+          accounts[form.email.toLowerCase().trim()] = doctorProfile;
+        }
+        localStorage.setItem(DOCTOR_ACCOUNTS_KEY, JSON.stringify(accounts));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    router.push("/doctor/login");
   };
 
   return (

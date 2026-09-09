@@ -5,9 +5,21 @@ import { MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function TluxFloatingButton() {
+interface TluxFloatingButtonProps {
+  onChatOpen?: () => void;
+}
+
+export default function TluxFloatingButton({ onChatOpen }: TluxFloatingButtonProps = {}) {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
+
+  const handleClick = () => {
+    if (onChatOpen) {
+      onChatOpen();
+    } else {
+      router.push("/patient/Tlux");
+    }
+  };
 
   return (
     <motion.div
@@ -21,7 +33,7 @@ export default function TluxFloatingButton() {
       }}
     >
       <motion.button
-        onClick={() => router.push("/patient/Tlux")}
+        onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         whileHover={{ scale: 1.05 }}
