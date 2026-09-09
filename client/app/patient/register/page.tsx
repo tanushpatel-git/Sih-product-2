@@ -89,7 +89,7 @@ export function RegisterPage() {
 
             <div>
               <div className="text-[15px] font-semibold tracking-[-0.02em]">
-                NEXUS
+                VITAWEAVE
               </div>
 
               <div className="hidden text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581] sm:block">
@@ -137,7 +137,7 @@ export function RegisterPage() {
               </h1>
 
               <p className="mt-8 max-w-[500px] text-base leading-7 text-[#69736f] sm:text-lg">
-                Create your NEXUS patient profile to access personalized
+                Create your VITAWEAVE patient profile to access personalized
                 clinical intelligence, health insights, and connected
                 healthcare services.
               </p>
@@ -636,7 +636,7 @@ export function RegisterPage() {
                     </button>
 
                     <p className="text-[10px] leading-5 text-[#89938f]">
-                      I agree to the NEXUS{" "}
+                      I agree to the VITAWEAVE{" "}
                       <button
                         type="button"
                         className="font-medium text-[#56615d] underline underline-offset-2"
@@ -711,7 +711,7 @@ export function RegisterPage() {
 
         {/* Footer */}
         <div className="pointer-events-none absolute bottom-6 left-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:left-10 lg:left-14 lg:block">
-          NEXUS / PATIENT / REGISTRATION
+          VITAWEAVE / PATIENT / REGISTRATION
         </div>
 
         <div className="pointer-events-none absolute bottom-6 right-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:right-10 lg:right-14 lg:block">

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEXUS",
+  title: "VITAWEAVE",
   description: "Clinical intelligence workspace for patients, hospitals, and doctors.",
 };
 

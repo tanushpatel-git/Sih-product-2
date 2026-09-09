@@ -89,7 +89,7 @@ export default function HomePage() {
 
             <div>
               <p className="text-[13px] font-semibold tracking-[0.2em]">
-                NEXUS
+                VITAWEAVE
               </p>
               <p className="text-[9px] uppercase tracking-[0.18em] text-black/35">
                 Healthcare Intelligence
@@ -106,7 +106,7 @@ export default function HomePage() {
             <div className="h-5 w-px bg-black/10" />
 
             <div className="font-mono text-[9px] tracking-[0.14em] text-black/30">
-              NXS / 01.0
+              VTV / 01.0
             </div>
           </div>
         </header>
@@ -132,7 +132,7 @@ export default function HomePage() {
             </h1>
 
             <p className="mt-10 max-w-xl text-[15px] leading-7 text-black/50 sm:text-base">
-              NEXUS connects clinical risk, hospital demand and regional
+              VITAWEAVE connects clinical risk, hospital demand and regional
               capacity into one intelligence system — helping healthcare
               teams understand what is happening and what comes next.
             </p>
@@ -197,7 +197,7 @@ export default function HomePage() {
                   </span>
 
                   <span className="mt-1 text-2xl font-medium tracking-[-0.04em]">
-                    NEXUS
+                    VITAWEAVE
                   </span>
                 </div>
 
@@ -400,7 +400,7 @@ export default function HomePage() {
           </div>
 
           <div className="font-mono">
-            NEXUS / CLINICAL INTELLIGENCE SYSTEM
+            VITAWEAVE / CLINICAL INTELLIGENCE SYSTEM
           </div>
         </footer>
       </div>
