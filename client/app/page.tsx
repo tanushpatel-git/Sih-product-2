@@ -1,3 +1,8 @@
+import ClinicalDashboardPage from "./dashboard/page";
+
+export default function Home() {
+  return <ClinicalDashboardPage />;
+}
 import Link from "next/link";
 import {
   Activity,

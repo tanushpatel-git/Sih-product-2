@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "Clinical intelligence workspace for patients, hospitals, and doctors.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
