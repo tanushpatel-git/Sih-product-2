@@ -495,8 +495,30 @@ export default function Page() {
         </div>
       </div>
 
-      {/* TLUX FLOATING BUTTON */}
-      <TluxFloatingButton onChatOpen={() => setShowTlux(true)} />
+                {/* Response Style */}
+                <div>
+                  <label className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">
+                    Response style
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={config.responseStyle}
+                      onChange={(e) =>
+                        setConfig({ ...config, responseStyle: e.target.value })
+                      }
+                      className="h-13 w-full appearance-none rounded-2xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm text-[#35403c] outline-none transition focus:border-[#aab5b0] focus:bg-white focus:ring-4 focus:ring-[#17201d]/[0.035]"
+                    >
+                      <option value="default">Default</option>
+                      <option value="simple">Simple and concise</option>
+                      <option value="detailed">Detailed</option>
+                      <option value="empathetic">Empathetic</option>
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                    />
+                  </div>
+                </div>
 
       {/* TLUX CHAT DRAWER */}
       <TluxChatDrawer isOpen={showTlux} onClose={() => setShowTlux(false)} doctor={doctor} />

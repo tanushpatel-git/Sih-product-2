@@ -11,49 +11,41 @@ import {
   LogOut,
 } from "lucide-react";
 
-interface PatientSidebarProps {
-  onAiClick: () => void;
-  activeTab?: "overview" | "medicalAnalysis";
-  onTabChange?: (tab: "overview" | "medicalAnalysis") => void;
-  onLogout?: () => void;
-  patientName?: string;
-}
+const navigation = [
+  {
+    label: "Overview",
+    icon: LayoutDashboard,
+    active: true,
+  },
+  {
+    label: "My Health",
+    icon: HeartPulse,
+    active: false,
+  },
+  {
+    label: "Appointments",
+    icon: CalendarDays,
+    active: false,
+  },
+  {
+    label: "Medical Records",
+    icon: FileText,
+    active: false,
+  },
+];
 
-export default function PatientSidebar({
-  onAiClick,
-  activeTab = "overview",
-  onTabChange,
-  onLogout,
-  patientName,
-}: PatientSidebarProps) {
-  const navigation = [
-    {
-      key: "overview" as const,
-      label: "Overview",
-      icon: LayoutDashboard,
-    },
-    {
-      key: "medicalAnalysis" as const,
-      label: "Medical Analysis",
-      icon: HeartPulse,
-    },
-  ];
+const secondaryNavigation = [
+  {
+    label: "TLUX",
+    icon: Sparkles,
+  },
+  {
+    label: "Settings",
+    icon: Settings,
+  },
+];
 
-  const secondaryNavigation = [
-    {
-      label: "TLUX",
-      icon: Sparkles,
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-    },
-    {
-      label: "Sign Out",
-      icon: LogOut,
-    },
-  ];
-
+export default function PatientSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[245px] border-r border-[#e1e7e4] bg-[#f8faf9] px-5 py-6 lg:flex lg:flex-col">
       {/* Logo */}
@@ -143,13 +135,6 @@ export default function PatientSidebar({
             return (
               <button
                 key={item.label}
-                onClick={() => {
-                  if (item.label === "TLUX") {
-                    onAiClick();
-                  } else if (item.label === "Sign Out") {
-                    onLogout?.();
-                  }
-                }}
                 className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-[#71807a] transition hover:bg-[#edf2ef] hover:text-[#17221f]"
               >
                 <Icon size={15} strokeWidth={1.8} />
