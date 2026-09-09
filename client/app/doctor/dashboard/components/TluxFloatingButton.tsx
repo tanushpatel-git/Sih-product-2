@@ -3,12 +3,10 @@
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-interface TluxFloatingButtonProps {
-  onChatOpen: () => void;
-}
-
-export default function TluxFloatingButton({ onChatOpen }: TluxFloatingButtonProps) {
+export default function TluxFloatingButton() {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -23,7 +21,7 @@ export default function TluxFloatingButton({ onChatOpen }: TluxFloatingButtonPro
       }}
     >
       <motion.button
-        onClick={onChatOpen}
+        onClick={() => router.push("/patient/Tlux")}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         whileHover={{ scale: 1.05 }}
@@ -54,8 +52,8 @@ export default function TluxFloatingButton({ onChatOpen }: TluxFloatingButtonPro
             animate={{ opacity: 1, x: 0 }}
             className="absolute right-full mr-3 rounded-lg bg-[#17201d] px-3 py-2 text-white shadow-lg"
           >
-            <p className="text-xs font-medium">Chat with TLUX</p>
-            <p className="text-[10px] text-white/70">AI Assistant</p>
+            <p className="text-xs font-medium">Open TLUX</p>
+            <p className="text-[10px] text-white/70">Consultation Assistant</p>
           </motion.div>
         )}
       </motion.button>

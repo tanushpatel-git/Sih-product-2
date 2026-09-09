@@ -6,13 +6,10 @@ import { motion } from "framer-motion";
 import {
   Activity,
   ArrowRight,
-  CalendarDays,
-  Check,
   Eye,
   EyeOff,
   LockKeyhole,
   Mail,
-  Phone,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -20,14 +17,10 @@ import {
 export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreed, setAgreed] = useState(false);
 
   const [form, setForm] = useState({
     fullName: "",
-    dateOfBirth: "",
-    gender: "",
     email: "",
-    phone: "",
     password: "",
     confirmPassword: "",
   });
@@ -50,15 +43,7 @@ export function RegisterPage() {
       return;
     }
 
-    if (!agreed) {
-      alert("Please accept the terms to continue.");
-      return;
-    }
-
-    console.log({
-      ...form,
-      agreed,
-    });
+    console.log(form);
   };
 
   return (
@@ -298,188 +283,50 @@ export function RegisterPage() {
                     </div>
                   </div>
 
-                  {/* DOB + Gender */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label
-                        htmlFor="dateOfBirth"
-                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
-                      >
-                        Date of birth
-                      </label>
+                  {/* Email */}
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
+                    >
+                      Email
+                    </label>
 
-                      <div className="relative">
-                        <CalendarDays
-                          size={16}
-                          strokeWidth={1.7}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
-                        />
+                    <div className="relative">
+                      <Mail
+                        size={16}
+                        strokeWidth={1.7}
+                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
+                      />
 
-                        <input
-                          id="dateOfBirth"
-                          type="date"
-                          value={form.dateOfBirth}
-                          onChange={(event) =>
-                            updateField(
-                              "dateOfBirth",
-                              event.target.value
-                            )
-                          }
-                          required
-                          className="
-                            h-13 w-full rounded-2xl
-                            border border-[#dfe5e2]
-                            bg-[#f9faf9]
-                            pl-12 pr-3
-                            text-sm text-[#35403c]
-                            outline-none
-                            transition-all
-                            focus:border-[#aab5b0]
-                            focus:bg-white
-                            focus:ring-4
-                            focus:ring-[#17201d]/[0.035]
-                          "
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="gender"
-                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
-                      >
-                        Gender
-                      </label>
-
-                      <select
-                        id="gender"
-                        value={form.gender}
+                      <input
+                        id="email"
+                        type="email"
+                        value={form.email}
                         onChange={(event) =>
                           updateField(
-                            "gender",
+                            "email",
                             event.target.value
                           )
                         }
+                        placeholder="you@email.com"
+                        autoComplete="email"
                         required
                         className="
-                          h-13 w-full appearance-none rounded-2xl
+                          h-13 w-full rounded-2xl
                           border border-[#dfe5e2]
                           bg-[#f9faf9]
-                          px-4
-                          text-sm text-[#35403c]
+                          pl-12 pr-3
+                          text-sm
                           outline-none
                           transition-all
+                          placeholder:text-[#a4aca8]
                           focus:border-[#aab5b0]
                           focus:bg-white
                           focus:ring-4
                           focus:ring-[#17201d]/[0.035]
                         "
-                      >
-                        <option value="" disabled>
-                          Select
-                        </option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                        <option value="prefer-not-to-say">
-                          Prefer not to say
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Email + Phone */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
-                      >
-                        Email
-                      </label>
-
-                      <div className="relative">
-                        <Mail
-                          size={16}
-                          strokeWidth={1.7}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
-                        />
-
-                        <input
-                          id="email"
-                          type="email"
-                          value={form.email}
-                          onChange={(event) =>
-                            updateField(
-                              "email",
-                              event.target.value
-                            )
-                          }
-                          placeholder="you@email.com"
-                          autoComplete="email"
-                          required
-                          className="
-                            h-13 w-full rounded-2xl
-                            border border-[#dfe5e2]
-                            bg-[#f9faf9]
-                            pl-12 pr-3
-                            text-sm
-                            outline-none
-                            transition-all
-                            placeholder:text-[#a4aca8]
-                            focus:border-[#aab5b0]
-                            focus:bg-white
-                            focus:ring-4
-                            focus:ring-[#17201d]/[0.035]
-                          "
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="phone"
-                        className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]"
-                      >
-                        Phone
-                      </label>
-
-                      <div className="relative">
-                        <Phone
-                          size={16}
-                          strokeWidth={1.7}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
-                        />
-
-                        <input
-                          id="phone"
-                          type="tel"
-                          value={form.phone}
-                          onChange={(event) =>
-                            updateField(
-                              "phone",
-                              event.target.value
-                            )
-                          }
-                          placeholder="+91 98765 43210"
-                          autoComplete="tel"
-                          required
-                          className="
-                            h-13 w-full rounded-2xl
-                            border border-[#dfe5e2]
-                            bg-[#f9faf9]
-                            pl-12 pr-3
-                            text-sm
-                            outline-none
-                            transition-all
-                            placeholder:text-[#a4aca8]
-                            focus:border-[#aab5b0]
-                            focus:bg-white
-                            focus:ring-4
-                            focus:ring-[#17201d]/[0.035]
-                          "
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
 
@@ -610,48 +457,6 @@ export function RegisterPage() {
                         )}
                       </button>
                     </div>
-                  </div>
-
-                  {/* Terms */}
-                  <div className="flex items-start gap-3 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setAgreed((value) => !value)}
-                      aria-label="Accept terms"
-                      className={`
-                        mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-all
-                        ${
-                          agreed
-                            ? "border-[#17201d] bg-[#17201d] text-white"
-                            : "border-[#cbd4d0] bg-white"
-                        }
-                      `}
-                    >
-                      {agreed && (
-                        <Check
-                          size={11}
-                          strokeWidth={2.5}
-                        />
-                      )}
-                    </button>
-
-                    <p className="text-[10px] leading-5 text-[#89938f]">
-                      I agree to the VITAWEAVE{" "}
-                      <button
-                        type="button"
-                        className="font-medium text-[#56615d] underline underline-offset-2"
-                      >
-                        Terms of Service
-                      </button>{" "}
-                      and{" "}
-                      <button
-                        type="button"
-                        className="font-medium text-[#56615d] underline underline-offset-2"
-                      >
-                        Privacy Policy
-                      </button>
-                      .
-                    </p>
                   </div>
 
                   {/* Submit */}
