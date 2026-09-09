@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -12,10 +13,10 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 
 export function HospitalLoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +30,9 @@ export function HospitalLoginPage() {
       password,
       remember,
     });
+
+    // Redirect to hospital dashboard (or create one if needed)
+    router.push("/hospital/dashboard");
   };
 
   return (
@@ -59,7 +63,7 @@ export function HospitalLoginPage() {
 
             <div>
               <div className="text-[15px] font-semibold tracking-[-0.02em]">
-                NEXUS
+                VITAWEAVE
               </div>
 
               <div className="hidden text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581] sm:block">
@@ -107,7 +111,7 @@ export function HospitalLoginPage() {
               </h1>
 
               <p className="mt-8 max-w-[520px] text-base leading-7 text-[#69736f] sm:text-lg">
-                NEXUS connects hospital capacity, patient demand, and regional
+                VITAWEAVE connects hospital capacity, patient demand, and regional
                 resources into one operational intelligence layer.
               </p>
 
@@ -338,26 +342,6 @@ export function HospitalLoginPage() {
                   </button>
                 </form>
 
-                {/* Divider */}
-                <div className="my-7 flex items-center gap-4">
-                  <div className="h-px flex-1 bg-[#e5e9e7]" />
-
-                  <span className="text-[8px] font-medium uppercase tracking-[0.18em] text-[#a0aaa6]">
-                    or
-                  </span>
-
-                  <div className="h-px flex-1 bg-[#e5e9e7]" />
-                </div>
-
-                {/* SSO */}
-                <button
-                  type="button"
-                  className="flex h-13 w-full items-center justify-center gap-3 rounded-2xl border border-[#dfe5e2] bg-white text-sm font-medium text-[#35413d] transition-all duration-300 hover:border-[#cbd4d0] hover:bg-[#f8faf9]"
-                >
-                  <Sparkles size={15} strokeWidth={1.7} />
-                  Continue with organization SSO
-                </button>
-
                 {/* Security */}
                 <div className="mt-7 flex items-center justify-center gap-2 text-center">
                   <ShieldCheck
@@ -374,7 +358,7 @@ export function HospitalLoginPage() {
 
               {/* Registration */}
               <p className="mt-6 text-center text-xs text-[#89938f]">
-                New hospital to NEXUS?{" "}
+                New hospital to VITAWEAVE?{" "}
                 <Link
                   href="/hospital/register"
                   className="font-medium text-[#35403d] underline decoration-[#c5ceca] underline-offset-4 transition-colors hover:text-[#17201d]"
@@ -388,7 +372,7 @@ export function HospitalLoginPage() {
 
         {/* Footer coordinates */}
         <div className="pointer-events-none absolute bottom-6 left-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:left-10 lg:left-14 lg:block">
-          NEXUS / HOSPITAL INTELLIGENCE / AUTH
+          VITAWEAVE / HOSPITAL INTELLIGENCE / AUTH
         </div>
 
         <div className="pointer-events-none absolute bottom-6 right-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:right-10 lg:right-14 lg:block">

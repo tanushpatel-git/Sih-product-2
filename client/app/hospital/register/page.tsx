@@ -97,7 +97,7 @@ export function HospitalRegisterPage() {
 
             <div>
               <div className="text-[15px] font-semibold tracking-[-0.02em]">
-                NEXUS
+                VITAWEAVE
               </div>
 
               <div className="hidden text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581] sm:block">
@@ -282,7 +282,7 @@ export function HospitalRegisterPage() {
 
                   <p className="mt-2 max-w-[500px] text-sm leading-6 text-[#7b8581]">
                     Create your organization profile to connect hospital
-                    operations with NEXUS intelligence.
+                    operations with VITAWEAVE intelligence.
                   </p>
                 </div>
 
@@ -806,7 +806,7 @@ export function HospitalRegisterPage() {
 
                     <span className="text-xs leading-5 text-[#7a8580]">
                       I confirm that I am authorized to register this
-                      healthcare organization and agree to the NEXUS
+                      healthcare organization and agree to the VITAWEAVE
                       organization terms and security requirements.
                     </span>
                   </label>
@@ -835,7 +835,7 @@ export function HospitalRegisterPage() {
                   />
 
                   <span className="text-[9px] leading-4 text-[#89938f]">
-                    Organization data protected · Secure NEXUS onboarding
+                    Organization data protected · Secure VITAWEAVE onboarding
                   </span>
                 </div>
               </div>
@@ -857,7 +857,7 @@ export function HospitalRegisterPage() {
 
         {/* Footer coordinates */}
         <div className="pointer-events-none absolute bottom-6 left-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:left-10 lg:left-14 lg:block">
-          NEXUS / HOSPITAL INTELLIGENCE / ORGANIZATION
+          VITAWEAVE / HOSPITAL INTELLIGENCE / ORGANIZATION
         </div>
 
         <div className="pointer-events-none absolute bottom-6 right-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:right-10 lg:right-14 lg:block">

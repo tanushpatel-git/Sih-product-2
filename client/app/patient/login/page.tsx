@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -11,10 +12,10 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 
 export function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,6 +27,9 @@ export function LoginPage() {
       email,
       password,
     });
+
+    // Redirect to patient dashboard
+    router.push("/patient/dashboard");
   };
 
   return (
@@ -55,7 +59,7 @@ export function LoginPage() {
 
             <div>
               <div className="text-[15px] font-semibold tracking-[-0.02em]">
-                NEXUS
+                VITAWEAVE
               </div>
               <div className="hidden text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581] sm:block">
                 Healthcare Intelligence
@@ -99,7 +103,7 @@ export function LoginPage() {
               </h1>
 
               <p className="mt-8 max-w-[520px] text-base leading-7 text-[#69736f] sm:text-lg">
-                NEXUS connects clinical risk, hospital demand, and regional
+                VITAWEAVE connects clinical risk, hospital demand, and regional
                 capacity into one intelligence layer for healthcare teams.
               </p>
 
@@ -354,7 +358,7 @@ export function LoginPage() {
                       active:translate-y-0
                     "
                   >
-                    <span>Enter NEXUS</span>
+                    <span>Enter patient workspace</span>
 
                     <ArrowRight
                       size={16}
@@ -363,34 +367,6 @@ export function LoginPage() {
                     />
                   </button>
                 </form>
-
-                {/* Divider */}
-                <div className="my-7 flex items-center gap-4">
-                  <div className="h-px flex-1 bg-[#e5e9e7]" />
-
-                  <span className="text-[8px] font-medium uppercase tracking-[0.18em] text-[#a0aaa6]">
-                    or
-                  </span>
-
-                  <div className="h-px flex-1 bg-[#e5e9e7]" />
-                </div>
-
-                {/* SSO */}
-                <button
-                  type="button"
-                  className="
-                    flex h-13 w-full items-center justify-center gap-3
-                    rounded-2xl border border-[#dfe5e2]
-                    bg-white
-                    text-sm font-medium text-[#35413d]
-                    transition-all duration-300
-                    hover:border-[#cbd4d0]
-                    hover:bg-[#f8faf9]
-                  "
-                >
-                  <Sparkles size={15} strokeWidth={1.7} />
-                  Continue with organization SSO
-                </button>
 
                 {/* Security */}
                 <div className="mt-7 flex items-center justify-center gap-2 text-center">
@@ -408,7 +384,7 @@ export function LoginPage() {
 
               {/* Registration */}
               <p className="mt-6 text-center text-xs text-[#89938f]">
-                New to NEXUS?{" "}
+                New to VITAWEAVE?{" "}
                 <Link
                   href="/patient/register"
                   className="font-medium text-[#35413d] underline decoration-[#c5ceca] underline-offset-4 transition-colors hover:text-[#17201d]"
@@ -422,7 +398,7 @@ export function LoginPage() {
 
         {/* Footer coordinates */}
         <div className="pointer-events-none absolute bottom-6 left-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:left-10 lg:left-14 lg:block">
-          NEXUS / CLINICAL INTELLIGENCE / AUTH
+          VITAWEAVE / CLINICAL INTELLIGENCE / AUTH
         </div>
 
         <div className="pointer-events-none absolute bottom-6 right-6 hidden font-mono text-[8px] uppercase tracking-[0.18em] text-[#a0aaa6] sm:right-10 lg:right-14 lg:block">

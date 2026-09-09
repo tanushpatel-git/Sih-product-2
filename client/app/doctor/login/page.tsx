@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -11,11 +12,11 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Sparkles,
   Stethoscope,
 } from "lucide-react";
 
 export function DoctorLoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,6 +30,9 @@ export function DoctorLoginPage() {
       password,
       remember,
     });
+
+    // Redirect to doctor dashboard
+    router.push("/doctor/dashboard");
   };
 
   return (
@@ -47,7 +51,7 @@ export function DoctorLoginPage() {
 
               <div>
                 <p className="text-[13px] font-semibold tracking-[0.18em]">
-                  NEXUS
+                  VITAWEAVE
                 </p>
                 <p className="text-[10px] uppercase tracking-[0.16em] text-black/40">
                   Healthcare Intelligence
@@ -82,7 +86,7 @@ export function DoctorLoginPage() {
                   "PATIENT RISK",
                   "CLINICAL SIGNAL",
                   "PREDICTION",
-                  "NEXUS AI",
+                  "TLUX",
                 ].map((item, index) => (
                   <div key={item} className="flex items-center gap-2">
                     <div className="rounded-full border border-black/[0.08] bg-white/70 px-3.5 py-2 text-[10px] font-semibold tracking-[0.12em] text-black/55 backdrop-blur">
@@ -116,7 +120,7 @@ export function DoctorLoginPage() {
 
               <div>
                 <p className="text-[13px] font-semibold tracking-[0.18em]">
-                  NEXUS
+                  VITAWEAVE
                 </p>
                 <p className="text-[10px] uppercase tracking-[0.16em] text-black/40">
                   Healthcare Intelligence
@@ -241,23 +245,6 @@ export function DoctorLoginPage() {
               </motion.button>
             </form>
 
-            {/* SSO */}
-            <div className="my-7 flex items-center gap-4">
-              <div className="h-px flex-1 bg-black/[0.07]" />
-              <span className="text-[10px] uppercase tracking-[0.14em] text-black/25">
-                or
-              </span>
-              <div className="h-px flex-1 bg-black/[0.07]" />
-            </div>
-
-            <button
-              type="button"
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-black/[0.08] bg-white text-sm font-medium text-black/65 transition hover:border-black/15 hover:bg-black/[0.015]"
-            >
-              <Sparkles size={16} />
-              Continue with professional SSO
-            </button>
-
             {/* Security */}
             <div className="mt-8 flex items-start gap-3 rounded-2xl border border-black/[0.06] bg-white/60 p-4">
               <ShieldCheck
@@ -274,7 +261,7 @@ export function DoctorLoginPage() {
 
             {/* Register */}
             <p className="mt-8 text-center text-sm text-black/40">
-              New to NEXUS?{" "}
+              New to VITAWEAVE?{" "}
               <Link
                 href="/doctor/register"
                 className="font-medium text-[#4c756c] hover:text-[#17201d]"

@@ -75,7 +75,7 @@ export function DoctorRegisterPage() {
 
               <div>
                 <p className="text-[13px] font-semibold tracking-[0.18em]">
-                  NEXUS
+                  VITAWEAVE
                 </p>
 
                 <p className="text-[10px] uppercase tracking-[0.16em] text-black/40">
@@ -100,7 +100,7 @@ export function DoctorRegisterPage() {
               </h1>
 
               <p className="mt-8 max-w-md text-[15px] leading-7 text-black/50">
-                Connect your professional identity to NEXUS and access
+                Connect your professional identity to VITAWEAVE and access
                 patient-level clinical intelligence, prediction models and
                 decision-support tools.
               </p>
@@ -159,7 +159,7 @@ export function DoctorRegisterPage() {
 
               <div>
                 <p className="text-[13px] font-semibold tracking-[0.18em]">
-                  NEXUS
+                  VITAWEAVE
                 </p>
 
                 <p className="text-[10px] uppercase tracking-[0.16em] text-black/40">
@@ -183,7 +183,7 @@ export function DoctorRegisterPage() {
               </h2>
 
               <p className="mt-3 max-w-lg text-sm leading-6 text-black/45">
-                Create your professional identity to enter the NEXUS clinical
+                Create your professional identity to enter the VITAWEAVE clinical
                 workspace.
               </p>
             </div>
@@ -488,7 +488,7 @@ export function DoctorRegisterPage() {
 
                 <span className="text-xs leading-5 text-black/45">
                   I confirm that the professional information provided is
-                  accurate and agree to the NEXUS professional terms and
+                  accurate and agree to the VITAWEAVE professional terms and
                   clinical decision-support guidelines.
                 </span>
               </label>
