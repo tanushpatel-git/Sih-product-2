@@ -1,8 +1,8 @@
-import ClinicalDashboardPage from "./dashboard/page";
+// import ClinicalDashboardPage from "./dashboard/page";
 
-export default function Home() {
-  return <ClinicalDashboardPage />;
-}
+// export default function Home() {
+//   return <ClinicalDashboardPage />;
+// }
 import Link from "next/link";
 import {
   Activity,
@@ -148,11 +148,10 @@ export default function HomePage() {
                 {signals.map((signal, index) => (
                   <div key={signal} className="flex items-center">
                     <div
-                      className={`flex h-9 items-center rounded-full border border-black/[0.07] px-4 ${
-                        index === 0
+                      className={`flex h-9 items-center rounded-full border border-black/[0.07] px-4 ${index === 0
                           ? "bg-[#17201d] text-white"
                           : "bg-white/60 text-black/45"
-                      }`}
+                        }`}
                     >
                       <span className="font-mono text-[9px] font-medium tracking-[0.14em]">
                         {signal}

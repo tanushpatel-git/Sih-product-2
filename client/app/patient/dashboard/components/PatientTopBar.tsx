@@ -11,7 +11,7 @@ export default function PatientTopBar() {
         </p>
 
         <h2 className="mt-1 text-[13px] font-medium tracking-[-0.01em]">
-          Good evening, Vedant.
+          Good evening.
         </h2>
       </div>
 
