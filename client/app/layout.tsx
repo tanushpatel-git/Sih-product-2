@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEXUS — Clinical Intelligence Workstation",
-  description: "Advanced 2.5D Clinical Digital Twin and Neurological Predictive Intelligence",
+  title: "VITAWEAVE",
+  description: "Clinical intelligence workspace for patients, hospitals, and doctors.",
 };
 
 export default function RootLayout({
