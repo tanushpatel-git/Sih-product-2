@@ -2,18 +2,13 @@
 
 import { motion } from "framer-motion";
 import { Sparkles, X, Brain, ArrowUpRight } from "lucide-react";
-import { formatDoctorName } from "../../doctorAuth";
 
 interface TluxChatDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  doctor?: {
-    name: string;
-  };
 }
 
-export default function TluxChatDrawer({ isOpen, onClose, doctor }: TluxChatDrawerProps) {
-  const doctorDisplayName = formatDoctorName(doctor?.name || "Dr. Sharma");
+export default function TluxChatDrawer({ isOpen, onClose }: TluxChatDrawerProps) {
   if (!isOpen) return null;
 
   return (
@@ -108,7 +103,7 @@ export default function TluxChatDrawer({ isOpen, onClose, doctor }: TluxChatDraw
         <div className="flex-1 overflow-y-auto px-6 py-7">
           <div className="max-w-[330px] rounded-[17px] rounded-tl-[5px] border border-black/[0.06] bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
             <p className="text-[10px] leading-5 text-black/50">
-              Hello {doctorDisplayName}. I can help you analyze patient
+              Hello. I can help you analyze patient
               risk, understand clinical signals, and prepare
               for your consultations.
             </p>

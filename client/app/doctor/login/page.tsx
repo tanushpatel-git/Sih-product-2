@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -19,21 +19,20 @@ import {
 export function DoctorLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
-
-  useEffect(() => {
+  const [email, setEmail] = useState(() => {
     if (typeof window !== "undefined") {
       try {
         const raw = localStorage.getItem(DOCTOR_STORAGE_KEY);
         if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed?.email) setEmail(parsed.email);
+          const parsed = JSON.parse(raw) as { email?: string };
+          if (parsed?.email) return parsed.email;
         }
       } catch {}
     }
-  }, []);
+    return "";
+  });
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

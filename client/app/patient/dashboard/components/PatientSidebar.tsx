@@ -8,28 +8,19 @@ import {
   ShieldCheck,
   UserRound,
   LayoutDashboard,
-  LogOut,
 } from "lucide-react";
 
 const navigation = [
   {
+    key: "overview",
     label: "Overview",
     icon: LayoutDashboard,
     active: true,
   },
   {
+    key: "health",
     label: "My Health",
     icon: HeartPulse,
-    active: false,
-  },
-  {
-    label: "Appointments",
-    icon: CalendarDays,
-    active: false,
-  },
-  {
-    label: "Medical Records",
-    icon: FileText,
     active: false,
   },
 ];
@@ -45,7 +36,17 @@ const secondaryNavigation = [
   },
 ];
 
-export default function PatientSidebar() {
+interface PatientSidebarProps {
+  patientName?: string;
+  activeTab?: string;
+  onTabChange?: (key: string) => void;
+}
+
+export default function PatientSidebar({
+  patientName,
+  activeTab,
+  onTabChange,
+}: PatientSidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[245px] border-r border-[#e1e7e4] bg-[#f8faf9] px-5 py-6 lg:flex lg:flex-col">
       {/* Logo */}

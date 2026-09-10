@@ -7,7 +7,6 @@ import {
   Activity,
   ArrowRight,
   Building2,
-  Check,
   ChevronDown,
   Eye,
   EyeOff,

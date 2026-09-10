@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
-  LayoutDashboard,
   Brain,
   FileText,
   MessageSquare,
@@ -13,7 +12,7 @@ import {
   X,
   LogOut,
 } from "lucide-react";
-import { formatDoctorName } from "../../doctorAuth";
+
 
 const navigation = [
   {
@@ -46,11 +45,6 @@ interface DoctorSidebarProps {
   onClose: () => void;
   activeTab?: string;
   onSelectTab?: (tab: string) => void;
-  doctor?: {
-    name: string;
-    specialty: string;
-    licenseNumber: string;
-  };
 }
 
 export default function DoctorSidebar({
@@ -58,9 +52,8 @@ export default function DoctorSidebar({
   onClose,
   activeTab = "ai-config",
   onSelectTab,
-  doctor,
 }: DoctorSidebarProps) {
-  const doctorDisplayName = formatDoctorName(doctor?.name || "Dr. Ananya Sharma");
+  const router = useRouter();
 
   return (
     <aside
@@ -106,18 +99,12 @@ export default function DoctorSidebar({
 
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold">
-              {doctorDisplayName}
+              Doctor Workspace
             </p>
 
             <p className="mt-0.5 truncate text-[10px] text-black/40">
-              {doctor?.specialty || "General Medicine"}
+              VITAWEAVE
             </p>
-
-            {doctor?.licenseNumber && (
-              <p className="mt-0.5 truncate font-mono text-[8px] text-[#4c756c]">
-                Lic: {doctor.licenseNumber}
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -217,11 +204,7 @@ export default function DoctorSidebar({
         </div>
 
         <button
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              window.location.href = "/doctor/login";
-            }
-          }}
+          onClick={() => router.push("/doctor/login")}
           className="mt-5 flex items-center gap-3 px-1 text-[10px] text-black/35 transition hover:text-black/70"
         >
           <LogOut size={14} />

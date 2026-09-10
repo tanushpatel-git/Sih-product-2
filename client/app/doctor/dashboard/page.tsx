@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { MessageSquare, FileText, Settings, Save, ChevronDown, Activity, Upload, Trash2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { FileText, Save, ChevronDown, Upload, Trash2 } from "lucide-react";
 import DoctorSidebar from "./components/DoctorSidebar";
 import DoctorTopBar from "./components/DoctorTopBar";
 import TluxFloatingButton from "./components/TluxFloatingButton";
 import TluxChatDrawer from "./components/TluxChatDrawer";
-import { getCurrentDoctor, DoctorProfile } from "../doctorAuth";
 
 // ─── Knowledge Document types ───────────────────────────────────────────────
 
@@ -43,16 +42,24 @@ export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showTlux, setShowTlux] = useState(false);
   const [activeTab, setActiveTab] = useState("ai-config");
-  const [doctor, setDoctor] = useState<DoctorProfile>(() => getCurrentDoctor());
 
   // ── AI Config state ─────────────────────────────────────────────────────
-  const [config, setConfig] = useState({
-    extraSystemInstructions: "",
-    responseStyle: "default",
-    language: "en",
-    maxTokens: "512",
-    temperature: "0.7",
-    emergencyPolicy: "",
+  const [config, setConfig] = useState(() => {
+    const defaults = {
+      extraSystemInstructions: "",
+      responseStyle: "default",
+      language: "en",
+      maxTokens: "512",
+      temperature: "0.7",
+      emergencyPolicy: "",
+    };
+    if (typeof window === "undefined") return defaults;
+    try {
+      const saved = localStorage.getItem("vitaweave_doctor_ai_config");
+      return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    } catch {
+      return defaults;
+    }
   });
 
   const handleSave = () => {
@@ -66,27 +73,13 @@ export default function Page() {
   };
 
   // ── Knowledge Docs state ─────────────────────────────────────────────────
-  const [docs, setDocs] = useState<KnowledgeDoc[]>([]);
+  const [docs, setDocs] = useState<KnowledgeDoc[]>(() => loadDocs());
   const [docName, setDocName] = useState("");
   const [docVersion, setDocVersion] = useState("v1");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Load doctor, docs and config on mount
-  useEffect(() => {
-    setDoctor(getCurrentDoctor());
-    setDocs(loadDocs());
-    if (typeof window !== "undefined") {
-      try {
-        const savedConfig = localStorage.getItem("vitaweave_doctor_ai_config");
-        if (savedConfig) {
-          setConfig((prev) => ({ ...prev, ...JSON.parse(savedConfig) }));
-        }
-      } catch { }
-    }
-  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -173,13 +166,12 @@ export default function Page() {
             setActiveTab(tab);
           }
         }}
-        doctor={doctor}
       />
 
       {/* MAIN */}
       <div className="lg:pl-[260px]">
         {/* TOP BAR */}
-        <DoctorTopBar onMenuClick={() => setSidebarOpen(true)} doctor={doctor} />
+        <DoctorTopBar onMenuClick={() => setSidebarOpen(true)} />
 
         {/* CONTENT */}
         <div className="mx-auto max-w-[1500px] px-5 py-7 sm:px-8 lg:px-10 lg:py-9">
@@ -495,33 +487,11 @@ export default function Page() {
         </div>
       </div>
 
-                {/* Response Style */}
-                <div>
-                  <label className="mb-2.5 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">
-                    Response style
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={config.responseStyle}
-                      onChange={(e) =>
-                        setConfig({ ...config, responseStyle: e.target.value })
-                      }
-                      className="h-13 w-full appearance-none rounded-2xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm text-[#35403c] outline-none transition focus:border-[#aab5b0] focus:bg-white focus:ring-4 focus:ring-[#17201d]/[0.035]"
-                    >
-                      <option value="default">Default</option>
-                      <option value="simple">Simple and concise</option>
-                      <option value="detailed">Detailed</option>
-                      <option value="empathetic">Empathetic</option>
-                    </select>
-                    <ChevronDown
-                      size={16}
-                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#9aa49f]"
-                    />
-                  </div>
-                </div>
-
       {/* TLUX CHAT DRAWER */}
-      <TluxChatDrawer isOpen={showTlux} onClose={() => setShowTlux(false)} doctor={doctor} />
+      <TluxChatDrawer isOpen={showTlux} onClose={() => setShowTlux(false)} />
+
+      {/* TLUX FLOATING BUTTON */}
+      <TluxFloatingButton />
     </main>
   );
 }

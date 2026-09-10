@@ -6,8 +6,6 @@ import {
   Activity,
   ArrowLeft,
   ArrowRight,
-  CalendarDays,
-  CheckCircle2,
   ChevronRight,
   Clock3,
   FileText,
@@ -20,9 +18,9 @@ import {
   ShieldCheck,
   Sparkles,
   Stethoscope,
-  UserRound,
   UsersRound,
   X,
+  LucideIcon,
 } from "lucide-react";
 
 type View = "consultations" | "specialties" | "doctors" | "chat";
@@ -54,7 +52,13 @@ type Message = {
   time: string;
 };
 
-const specialties = [
+type Specialty = {
+  name: string;
+  description: string;
+  icon: LucideIcon;
+};
+
+const specialties: Specialty[] = [
   {
     name: "Cardiology",
     description: "Heart & vascular health",
@@ -219,8 +223,7 @@ export default function Page() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(
     doctors[0],
   );
-  const [activeConsultation, setActiveConsultation] =
-    useState<Consultation | null>(consultations[0]);
+  const [, setActiveConsultation] = useState<Consultation | null>(consultations[0]);
   const [messageText, setMessageText] = useState("");
   const [messagesList, setMessagesList] = useState(messages);
   const [searchQuery, setSearchQuery] = useState("");
@@ -766,7 +769,7 @@ function SpecialtiesView({
   onSearchChange,
   onSearchEnter,
 }: {
-  specialties: typeof specialties;
+  specialties: Specialty[];
   onSelect: (specialty: string) => void;
   onSearchDoctors: () => void;
   searchQuery: string;
@@ -882,7 +885,6 @@ function SpecialtiesView({
 function DoctorsView({
   specialty,
   doctors,
-  onDoctor,
   onStart,
   selectedDoctor,
   searchQuery,

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, X, Activity, ShieldCheck, ArrowUpRight } from "lucide-react";
+import { Sparkles, X, ShieldCheck, ArrowUpRight } from "lucide-react";
 
 interface TluxChatDrawerProps {
   isOpen: boolean;

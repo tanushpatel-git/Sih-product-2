@@ -32,7 +32,7 @@ export function LoginPage() {
       if (typeof window !== "undefined") {
         const registered = JSON.parse(localStorage.getItem("vitaweave_patients") || "[]");
         const found = registered.find(
-          (u: any) => u.email?.toLowerCase() === email.trim().toLowerCase()
+          (u: { email?: string; fullName?: string }) => u.email?.toLowerCase() === email.trim().toLowerCase()
         );
         if (found && found.fullName) {
           userData = found;

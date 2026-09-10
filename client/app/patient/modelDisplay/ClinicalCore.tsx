@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { ClinicalModelConfig, ClinicalFactor } from "./clinical-models";
+import { ClinicalModelConfig } from "./clinical-models";
 
 export type ClinicalState = "IDLE" | "ASSESSING" | "RESULT";
 export type AssessingPhase = "INGESTING" | "SCANNING" | "CALCULATING";
