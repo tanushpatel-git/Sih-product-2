@@ -23,6 +23,47 @@ scripts         ingestion + RAG smoke-test helpers
 tlux-agent      working architecture document (source of truth)
 ```
 
+## Tech stack
+
+| Layer | Technology | Details |
+| ----- | ---------- | ------- |
+| **Frontend** | Next.js 16.3 (App Router), React 19, TypeScript | `apps/web` — patient / doctor / hospital portals, JWT auth on `localStorage`, centralized `fetch` API client (`lib/api.ts`) |
+| | Tailwind CSS v4, framer-motion, lucide-react | Utility styling, UI animation, icon set |
+| | 8 client-side clinical ML engines | Diabetes (XGBoost JSON trees), Stroke/Heart Disease/Anemia/Breast Cancer (logistic regression), Heart Failure (Random Forest, 800 JSON trees), Kidney (rule-based CKD staging), Liver (tuned ensemble) |
+| **Backend API** | Node.js ≥ 20, Express 4.21 | `apps/api` — plain JavaScript, REST on port 5001 |
+| | Mongoose 8 | MongoDB ODM + schemas (users, doctors, patients, documents, chunks, conversations, messages) |
+| | jsonwebtoken, bcryptjs | JWT auth + password hashing |
+| | multer, uuid, cors, dotenv | File uploads, IDs, CORS, env config |
+| **AI Service** | Python ≥ 3.11, FastAPI + Uvicorn | `services/ai` — RAG/LLM service on port 8000 |
+| | LangChain 0.3 (ollama, community, text-splitters) | Document ingestion, chunking, retrieval chains |
+| | Ollama (llama3.1:8b chat, bge-m3 embeddings, 1024-dim) | Fully local inference + embeddings |
+| | PyMongo, pydantic v2, pypdf, httpx | DB access, request models, PDF parsing, HTTP |
+| **Database** | MongoDB (Atlas / local) | Collections: `users`, `doctors`, `patients`, `doctordocuments`, `documentchunks`, `conversations`, `messages`; seeded from `database/` |
+| **Orchestration** | npm workspaces (monorepo) | Shared root scripts (`dev:web`, `dev:api`, `dev:ai`) |
+| **Service auth** | `X-AI-Key` header | Shared secret between Express API and FastAPI (`AI_SERVICE_API_KEY` / `API_KEY_FOR_AI`) |
+
+### Ports & service map
+
+```
+:3000  Next.js web app (apps/web)  ──▶  :5001  Express API (apps/api)
+:5001  Express API (apps/api)      ──▶  :8000  FastAPI AI service (services/ai)
+:8000  FastAPI AI service          ──▶  Ollama (:11434) — llama3.1:8b + bge-m3
+MongoDB  ◀──  Express API + AI service (documents, chunks, users, conversations)
+```
+
+### Frontend (apps/web) dependencies
+
+- **Runtime:** `next`, `react`, `react-dom`, `framer-motion`, `lucide-react`
+- **Dev:** `typescript`, `tailwindcss`, `@tailwindcss/postcss`, `eslint`, `eslint-config-next`, `@types/*`
+
+### Backend (apps/api) dependencies
+
+`express`, `mongoose`, `jsonwebtoken`, `bcryptjs`, `multer`, `uuid`, `cors`, `dotenv`
+
+### AI service (services/ai) dependencies
+
+`fastapi`, `uvicorn[standard]`, `pydantic>=2.10`, `langchain>=0.3,<1.0`, `langchain-core`, `langchain-community`, `langchain-ollama`, `langchain-text-splitters`, `pymongo[srv]`, `pypdf`, `python-multipart`, `httpx`
+
 ## Prerequisites
 
 - Node.js ≥ 20.9, npm

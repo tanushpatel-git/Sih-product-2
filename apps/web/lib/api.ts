@@ -5,13 +5,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 export interface AuthUser {
   id: string;
   email: string;
-  role: "ADMIN" | "DOCTOR" | "PATIENT";
+  role: "ADMIN" | "DOCTOR" | "PATIENT" | "HOSPITAL";
   full_name: string;
   doctor_id?: string;
   patient_id?: string;
+  hospital_id?: string;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
     super(message);
@@ -21,31 +22,31 @@ class ApiError extends Error {
 
 function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("medchat_token");
+  return localStorage.getItem("vitaweave_token");
 }
 
 export function setToken(token: string | null) {
   if (typeof window === "undefined") return;
-  if (token) localStorage.setItem("medchat_token", token);
-  else localStorage.removeItem("medchat_token");
+  if (token) localStorage.setItem("vitaweave_token", token);
+  else localStorage.removeItem("vitaweave_token");
 }
 
 export function getStoredUser(): AuthUser | null {
   if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem("medchat_user");
+  const raw = localStorage.getItem("vitaweave_user");
   if (!raw) return null;
   try {
     return JSON.parse(raw) as AuthUser;
   } catch {
-    localStorage.removeItem("medchat_user");
+    localStorage.removeItem("vitaweave_user");
     return null;
   }
 }
 
 export function setStoredUser(user: AuthUser | null) {
   if (typeof window === "undefined") return;
-  if (user) localStorage.setItem("medchat_user", JSON.stringify(user));
-  else localStorage.removeItem("medchat_user");
+  if (user) localStorage.setItem("vitaweave_user", JSON.stringify(user));
+  else localStorage.removeItem("vitaweave_user");
 }
 
 async function request<T>(
@@ -123,6 +124,19 @@ export interface AiConfig {
   emergency_policy?: string;
 }
 
+export interface MLPrediction {
+  model: string;
+  n_features: number;
+  predicted_class: number | string;
+  class_index: number;
+  classes: (number | string)[];
+  probabilities: number[];
+  probability_percent: number;
+  positive_index: number | null;
+  raw_score: number | null;
+  source: string;
+}
+
 export const api = {
   register: (payload: {
     email: string;
@@ -137,13 +151,22 @@ export const api = {
       body: JSON.stringify(payload),
     }, false),
 
+  registerHospital: (payload: {
+    email: string; password: string; fullName: string; role: "HOSPITAL";
+    hospitalName: string; hospitalType: string; registrationNumber: string;
+    phone: string; address: string; city: string; state: string; pincode: string;
+    latitude: number; longitude: number; totalBeds: number; icuBeds: number; activeDoctors: number;
+  }) => request<{ token: string; user: AuthUser }>('/api/auth/register', {
+    method: "POST", body: JSON.stringify(payload),
+  }, false),
+
   login: (email: string, password: string) =>
     request<{ token: string; user: AuthUser }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }, false),
 
-  me: () => request<{ user: never }>("/api/auth/me"),
+  me: () => request<{ user: AuthUser }>("/api/auth/me"),
 
   listDoctors: () => request<{ doctors: Doctor[] }>("/api/doctors"),
 
@@ -196,6 +219,22 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(cfg),
     }),
-};
 
-export { ApiError };
+  // Server-side prediction from the actual trained models (via Next proxy
+  // /api/ml/[model] -> services/ml FastAPI -> ml-models/*.pkl).
+  predictML: (model: string, features: number[]) =>
+    fetch(`/api/ml/${model}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ features }),
+    }).then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new ApiError(
+          res.status,
+          (data as { error?: string }).error ?? `ML predict failed (${res.status})`
+        );
+      }
+      return data as MLPrediction;
+    }),
+};

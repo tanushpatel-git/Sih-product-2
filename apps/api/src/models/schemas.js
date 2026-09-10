@@ -4,7 +4,7 @@ const userSchema = new Schema(
   {
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password_hash: { type: String, required: true },
-    role: { type: String, required: true, enum: ["ADMIN", "DOCTOR", "PATIENT"] },
+    role: { type: String, required: true, enum: ["ADMIN", "DOCTOR", "PATIENT", "HOSPITAL"] },
     full_name: { type: String, required: true },
     is_active: { type: Boolean, default: true },
   },
@@ -116,6 +116,39 @@ const auditLogSchema = new Schema(
 );
 auditLogSchema.index({ user_id: 1, createdAt: -1 });
 
+const hospitalSchema = new Schema(
+  {
+    user_id: { type: Schema.Types.ObjectId, ref: "User", default: null, unique: true, sparse: true },
+    code: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    hospital_type: { type: String, default: null },
+    registration_number: { type: String, default: null, unique: true, sparse: true },
+    administrator_name: { type: String, default: null },
+    official_email: { type: String, default: null },
+    phone: { type: String, default: null },
+    location: { type: Schema.Types.Mixed, default: {} },
+    icu_total_beds: { type: Number, required: true, min: 0 },
+    general_total_beds: { type: Number, required: true, min: 0 },
+    active_doctors: { type: Number, required: true, min: 0 },
+  },
+  { timestamps: true }
+);
+
+const hospitalCapacitySnapshotSchema = new Schema(
+  {
+    hospital_id: { type: Schema.Types.ObjectId, ref: "Hospital", required: true },
+    observed_at: { type: Date, required: true },
+    icu_occupied: { type: Number, required: true, min: 0 },
+    general_occupied: { type: Number, required: true, min: 0 },
+    opd_patients: { type: Number, required: true, min: 0 },
+    emergency_patients: { type: Number, required: true, min: 0 },
+    doctors_available: { type: Number, required: true, min: 0 },
+    source: { type: String, default: "manual" },
+  },
+  { timestamps: true }
+);
+hospitalCapacitySnapshotSchema.index({ hospital_id: 1, observed_at: -1 }, { unique: true });
+
 const getModel = (name, schema) => models[name] || model(name, schema);
 
 module.exports = {
@@ -128,4 +161,6 @@ module.exports = {
   Message: getModel("Message", messageSchema),
   AiConfig: getModel("AiConfig", aiConfigSchema),
   AuditLog: getModel("AuditLog", auditLogSchema),
+  Hospital: getModel("Hospital", hospitalSchema),
+  HospitalCapacitySnapshot: getModel("HospitalCapacitySnapshot", hospitalCapacitySnapshotSchema),
 };

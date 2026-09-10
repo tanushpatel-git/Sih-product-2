@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth";
+import { AuthProvider } from "../lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,12 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MedChat — Medical AI Consultation",
-  description:
-    "Privacy-focused medical consultation assistant powered by RAG + LangChain.",
+  title: "VITAWEAVE",
+  description: "Clinical intelligence workspace for patients, hospitals, and doctors.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html
       lang="en"
