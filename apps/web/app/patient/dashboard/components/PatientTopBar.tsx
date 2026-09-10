@@ -1,7 +1,8 @@
 "use client";
 
-import { Search, Bell } from "lucide-react";
+import { Search, Bell, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 function getISTDate(): string {
   const now = new Date();
@@ -51,6 +52,7 @@ interface PatientTopBarProps {
 }
 
 export default function PatientTopBar({ patientName }: PatientTopBarProps) {
+  const router = useRouter();
   const [dateStr, setDateStr] = useState<string>("");
   const [greeting, setGreeting] = useState<string>("Good day");
 
@@ -98,6 +100,15 @@ export default function PatientTopBar({ patientName }: PatientTopBarProps) {
           <Bell size={14} />
 
           <span className="absolute right-[8px] top-[7px] h-1.5 w-1.5 rounded-full border border-white bg-[#6e9d90]" />
+        </button>
+
+        {/* Sign out */}
+        <button
+          onClick={() => router.push("/patient/login")}
+          className="flex h-9 w-9 items-center justify-center rounded-[11px] border border-[#e0e6e3] bg-white text-[#697872] transition hover:bg-[#f0f4f2]"
+          title="Sign out"
+        >
+          <LogOut size={14} />
         </button>
 
         {/* Avatar */}

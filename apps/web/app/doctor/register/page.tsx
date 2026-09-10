@@ -2,11 +2,13 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "../../../lib/auth";
 import {
   Activity,
   ArrowRight,
+  ArrowLeft,
   ChevronDown,
   Eye,
   EyeOff,
@@ -16,6 +18,7 @@ import {
 } from "lucide-react";
 
 export function DoctorRegisterPage() {
+  const router = useRouter();
   const { register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -75,6 +78,13 @@ export function DoctorRegisterPage() {
           <div className="relative flex w-full flex-col justify-between p-10 xl:p-14">
             {/* Brand */}
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push("/")}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-black/40 hover:bg-[#f0f2f1]"
+              >
+                <ArrowLeft size={17} />
+              </button>
+
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white">
                 <Activity size={17} />
               </div>

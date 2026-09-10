@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, FileText, Save, ChevronDown, Upload, Trash2, Send } from "lucide-react";
 import DoctorSidebar from "./components/DoctorSidebar";
 import DoctorTopBar from "./components/DoctorTopBar";
-import TluxFloatingButton from "./components/TluxFloatingButton";
-import TluxChatDrawer from "./components/TluxChatDrawer";
 import { api, ApiError, type DocumentRow, type Conversation, type Message, type AiConfig } from "../../../lib/api";
 
 const ACCEPTED = ".txt,.md,.csv,.json";
@@ -16,7 +14,6 @@ function uniqueLocalId(): string {
 
 export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showTlux, setShowTlux] = useState(false);
   const [activeTab, setActiveTab] = useState("ai-config");
 
   // ── AI Config state ─────────────────────────────────────────────────────
@@ -280,11 +277,7 @@ export default function Page() {
         onClose={() => setSidebarOpen(false)}
         activeTab={activeTab}
         onSelectTab={(tab) => {
-          if (tab === "tlux") {
-            setShowTlux(true);
-          } else {
-            setActiveTab(tab);
-          }
+          setActiveTab(tab);
         }}
       />
 
@@ -769,12 +762,6 @@ export default function Page() {
           )}
         </div>
       </div>
-
-      {/* TLUX CHAT DRAWER */}
-      <TluxChatDrawer isOpen={showTlux} onClose={() => setShowTlux(false)} />
-
-      {/* TLUX FLOATING BUTTON */}
-      <TluxFloatingButton />
     </main>
   );
 }

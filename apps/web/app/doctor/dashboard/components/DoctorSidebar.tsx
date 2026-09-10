@@ -32,14 +32,6 @@ const navigation = [
   },
 ];
 
-const secondaryNavigation = [
-  {
-    id: "tlux",
-    label: "TLUX",
-    icon: Brain,
-  },
-];
-
 interface DoctorSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -140,43 +132,6 @@ export default function DoctorSidebar({
 
                 {isActive && (
                   <span className="h-1.5 w-1.5 rounded-full bg-[#91b5aa]" />
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        <p className="mb-3 mt-9 px-3 font-mono text-[9px] uppercase tracking-[0.18em] text-black/25">
-          Intelligence
-        </p>
-
-        <nav className="space-y-1">
-          {secondaryNavigation.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  onSelectTab?.(item.id);
-                  onClose();
-                }}
-                className={`group flex w-full items-center justify-between rounded-xl px-3 py-3 text-xs transition ${
-                  isActive
-                    ? "bg-[#17201d] text-white"
-                    : "text-black/50 hover:bg-white hover:text-black"
-                }`}
-              >
-                <span className="flex items-center gap-3">
-                  <Icon size={16} strokeWidth={1.8} />
-                  {item.label}
-                </span>
-
-                {item.label === "TLUX" && (
-                  <span className="rounded-full bg-[#e7efec] px-2 py-0.5 font-mono text-[7px] tracking-wider text-[#4c756c]">
-                    AI
-                  </span>
                 )}
               </button>
             );

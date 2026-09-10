@@ -31,7 +31,11 @@ const hotspots = [
   },
 ];
 
-export default function PatientHero() {
+interface PatientHeroProps {
+  onViewChange?: (view: "overview" | "clinical") => void;
+}
+
+export default function PatientHero({ onViewChange }: PatientHeroProps) {
   const [activeHotspot, setActiveHotspot] = useState("heart-rate");
 
   const mouseX = useMotionValue(0);
@@ -151,7 +155,10 @@ export default function PatientHero() {
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
-          <button className="group flex items-center gap-3 rounded-[13px] bg-[#17221f] px-5 py-3 text-[10px] font-medium text-white shadow-[0_15px_35px_rgba(20,32,29,0.15)] transition hover:-translate-y-0.5">
+          <button
+            onClick={() => onViewChange?.("clinical")}
+            className="group flex items-center gap-3 rounded-[13px] bg-[#17221f] px-5 py-3 text-[10px] font-medium text-white shadow-[0_15px_35px_rgba(20,32,29,0.15)] transition hover:-translate-y-0.5"
+          >
             View my health
 
             <ArrowUpRight
@@ -161,6 +168,7 @@ export default function PatientHero() {
           </button>
 
           <button
+            onClick={() => window.location.href = "/patient/Tlux"}
             className="flex items-center gap-2 rounded-[13px] border border-[#cbdad4] bg-white/60 px-5 py-3 text-[10px] text-[#59746b] backdrop-blur-xl transition hover:bg-white"
           >
             <Sparkles size={13} />

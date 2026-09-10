@@ -1,13 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   Activity,
   HeartPulse,
   Sparkles,
-  Settings,
   ShieldCheck,
   UserRound,
   LayoutDashboard,
+  LogOut,
 } from "lucide-react";
 
 const navigation = [
@@ -15,24 +16,19 @@ const navigation = [
     key: "overview",
     label: "Overview",
     icon: LayoutDashboard,
-    active: true,
   },
   {
     key: "health",
     label: "My Health",
     icon: HeartPulse,
-    active: false,
   },
 ];
 
 const secondaryNavigation = [
   {
+    key: "tlux",
     label: "TLUX",
     icon: Sparkles,
-  },
-  {
-    label: "Settings",
-    icon: Settings,
   },
 ];
 
@@ -47,6 +43,8 @@ export default function PatientSidebar({
   activeTab,
   onTabChange,
 }: PatientSidebarProps) {
+  const router = useRouter();
+
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[245px] border-r border-[#e1e7e4] bg-[#f8faf9] px-5 py-6 lg:flex lg:flex-col">
       {/* Logo */}
@@ -135,7 +133,12 @@ export default function PatientSidebar({
 
             return (
               <button
-                key={item.label}
+                key={item.key}
+                onClick={() => {
+                  if (item.key === "tlux") {
+                    router.push("/patient/Tlux");
+                  }
+                }}
                 className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-[#71807a] transition hover:bg-[#edf2ef] hover:text-[#17221f]"
               >
                 <Icon size={15} strokeWidth={1.8} />
@@ -168,6 +171,14 @@ export default function PatientSidebar({
             accessible only to you and your care team.
           </p>
         </div>
+
+        <button
+          onClick={() => router.push("/patient/login")}
+          className="mt-4 flex items-center gap-3 px-2 text-[10px] text-[#6da293] transition hover:text-[#17221f]"
+        >
+          <LogOut size={14} />
+          Sign out
+        </button>
       </div>
     </aside>
   );

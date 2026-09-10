@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import {
   Activity,
   ArrowRight,
+  ArrowLeft,
   Building2,
   Eye,
   EyeOff,
@@ -57,6 +58,13 @@ export function HospitalLoginPage() {
         {/* Navigation */}
         <header className="relative z-20 flex items-center justify-between px-6 py-6 sm:px-10 lg:px-14">
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/")}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#dfe5e2] bg-white text-[#69726e] hover:bg-[#f0f2f1]"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white shadow-sm">
               <Activity size={18} strokeWidth={2.2} />
             </div>

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Sparkles, X, Brain, ArrowUpRight } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface TluxChatDrawerProps {
   isOpen: boolean;
@@ -9,6 +10,16 @@ interface TluxChatDrawerProps {
 }
 
 export default function TluxChatDrawer({ isOpen, onClose }: TluxChatDrawerProps) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -22,17 +33,17 @@ export default function TluxChatDrawer({ isOpen, onClose }: TluxChatDrawerProps)
 
       <motion.aside
         initial={{
-          x: "100%",
+          y: "100%",
         }}
         animate={{
-          x: 0,
+          y: 0,
         }}
         transition={{
           type: "spring",
           stiffness: 280,
           damping: 28,
         }}
-        className="absolute right-0 top-0 flex h-full w-full max-w-[460px] flex-col border-l border-black/[0.06] bg-[#f8faf9] shadow-[-25px_0_70px_rgba(0,0,0,0.12)]"
+        className="absolute bottom-0 left-0 right-0 h-[80vh] max-w-[460px] mx-auto flex flex-col border-t border-black/[0.06] bg-[#f8faf9] shadow-[0_-25px_70px_rgba(0,0,0,0.12)]"
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between border-b border-black/[0.06] px-6 py-5">
@@ -141,6 +152,7 @@ export default function TluxChatDrawer({ isOpen, onClose }: TluxChatDrawerProps)
               </p>
             </div>
           </div>
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}

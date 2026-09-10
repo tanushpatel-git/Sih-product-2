@@ -1,12 +1,15 @@
 "use client";
 
-import { Menu, Search, Bell, CircleUserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, Search, Bell, CircleUserRound, LogOut } from "lucide-react";
 
 interface DoctorTopBarProps {
   onMenuClick: () => void;
 }
 
 export default function DoctorTopBar({ onMenuClick }: DoctorTopBarProps) {
+  const router = useRouter();
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -51,6 +54,15 @@ export default function DoctorTopBar({ onMenuClick }: DoctorTopBarProps) {
           <Bell size={17} />
 
           <span className="absolute right-2.5 top-2 h-1.5 w-1.5 rounded-full bg-[#c26a52]" />
+        </button>
+
+        {/* Sign out */}
+        <button
+          onClick={() => router.push("/doctor/login")}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/[0.07] bg-white text-black/40 transition hover:text-black"
+          title="Sign out"
+        >
+          <LogOut size={17} />
         </button>
 
         {/* Profile */}
