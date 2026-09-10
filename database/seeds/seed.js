@@ -7,6 +7,7 @@
  *  - AI configs for doctors
  *  - conversations + messages
  *  - a doctor knowledge document (chunks are created via the /ingest endpoint)
+ *  - a hospital capacity network with daily operational snapshots for forecast testing
  *
  * Idempotent: users are upserted by email; collections used match the
  * Mongoose pluralized names in apps/api (users, doctors, patients,
@@ -99,6 +100,13 @@ async function main() {
     password: "patient12345",
   });
 
+  const hospitalAdmin = await upsertUser(db, {
+    email: "hospital@medchat.dev",
+    full_name: "City General Administrator",
+    role: "HOSPITAL",
+    password: "hospital12345",
+  });
+
   // doctors
   const doc1 = await upsertOne(
     db,
@@ -144,6 +152,76 @@ async function main() {
       updatedAt: now,
     }
   );
+
+  // Hospital capacity network. These are synthetic operational records only;
+  // they are designed to exercise the capacity forecasting dashboard and must
+  // never be interpreted as real patient or facility data.
+  const cityGeneral = await upsertOne(
+    db,
+    "hospitals",
+    { code: "VITA-CGH-001" },
+    {
+      user_id: hospitalAdmin._id,
+      code: "VITA-CGH-001",
+      name: "City General Hospital",
+      administrator_name: "City General Administrator",
+      official_email: hospitalAdmin.email,
+      location: { city: "Mumbai", latitude: 19.076, longitude: 72.8777 },
+      icu_total_beds: 300,
+      general_total_beds: 1500,
+      active_doctors: 85,
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+
+  const nearbyHospitals = [
+    { code: "VITA-GVM-002", name: "Green Valley Medical Centre", distance_km: 4.8, icu_total_beds: 120, icu_occupied: 62, general_total_beds: 500, general_occupied: 275 },
+    { code: "VITA-RSH-003", name: "Riverside Hospital", distance_km: 7.2, icu_total_beds: 90, icu_occupied: 76, general_total_beds: 380, general_occupied: 320 },
+    { code: "VITA-MCH-004", name: "Metro Care Hospital", distance_km: 9.6, icu_total_beds: 160, icu_occupied: 101, general_total_beds: 700, general_occupied: 410 },
+  ];
+  for (const hospital of nearbyHospitals) {
+    await upsertOne(db, "hospitals", { code: hospital.code }, {
+      code: hospital.code,
+      name: hospital.name,
+      location: { city: "Mumbai", distance_from_city_general_km: hospital.distance_km },
+      icu_total_beds: hospital.icu_total_beds,
+      general_total_beds: hospital.general_total_beds,
+      active_doctors: Math.round((hospital.icu_total_beds + hospital.general_total_beds) / 8),
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+
+  // Fourteen daily observations make the ML model's trend features meaningful.
+  // The final row exactly matches the dashboard's default test scenario.
+  const cityHistory = [
+    [238, 1085, 332, 112], [242, 1098, 340, 116], [247, 1110, 348, 119],
+    [249, 1120, 360, 126], [255, 1140, 372, 130], [260, 1158, 381, 136],
+    [268, 1176, 390, 142], [270, 1188, 393, 145], [272, 1192, 395, 147],
+    [274, 1195, 396, 148], [276, 1197, 398, 149], [278, 1199, 399, 149],
+    [279, 1200, 400, 150], [280, 1200, 400, 150],
+  ];
+  const snapshotStart = new Date(now);
+  snapshotStart.setUTCDate(snapshotStart.getUTCDate() - (cityHistory.length - 1));
+  snapshotStart.setUTCHours(0, 0, 0, 0);
+  for (let index = 0; index < cityHistory.length; index += 1) {
+    const [icu_occupied, general_occupied, opd_patients, emergency_patients] = cityHistory[index];
+    const observed_at = new Date(snapshotStart);
+    observed_at.setUTCDate(snapshotStart.getUTCDate() + index);
+    await upsertOne(db, "hospitalcapacitysnapshots", { hospital_id: cityGeneral._id, observed_at }, {
+      hospital_id: cityGeneral._id,
+      observed_at,
+      icu_occupied,
+      general_occupied,
+      opd_patients,
+      emergency_patients,
+      doctors_available: 85,
+      source: "synthetic-seed",
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
 
   // conversations + messages
   const conv1 = {
@@ -201,6 +279,8 @@ async function main() {
   console.log("  Doctor : iyer@medchat.dev   / doctor12345");
   console.log("  Patient: rohan@medchat.dev  / patient12345");
   console.log("  Patient: priya@medchat.dev  / patient12345");
+  console.log("  Hospital: hospital@medchat.dev / hospital12345");
+  console.log("  Hospital capacity network: 4 synthetic hospitals / 14 daily snapshots");
   await client.close();
 }
 

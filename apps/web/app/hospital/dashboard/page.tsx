@@ -1,346 +1,47 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  Activity,
-  AlertTriangle,
-  ArrowUpRight,
-  BedDouble,
-  Building2,
-  Clock,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  Zap,
-} from "lucide-react";
+import { Activity, AlertTriangle, ArrowUpRight, Building2, CheckCircle2, Hospital, MapPin, RefreshCw, ShieldCheck, Stethoscope, TrendingUp } from "lucide-react";
 
-// ─── Metric card ─────────────────────────────────────────────────────────────
+type Forecast = { date: string; day: string; icu_demand: number; general_demand: number; opd_patients: number; doctor_demand: number; demand_score: number; status: string };
+type Analysis = { current: { icu_occupancy_percent: number; icu_available_beds: number; general_occupancy_percent: number; general_available_beds: number; overall_demand_score: number; status: string }; forecast: Forecast[]; peak: Forecast; shortage_risk: boolean; nearby_support_candidates: { name: string; distance_km: number; available_icu_beds: number; available_general_beds: number; status: string }[]; recommended_actions: string[]; model: { name: string; history_observations_used: number; method: string }; disclaimer: string };
 
-interface MetricProps {
-  label: string;
-  value: string;
-  detail: string;
-  icon: typeof Users;
-  trend: "up" | "warning" | "neutral";
-}
+const history = [{ icu_occupied: 249, general_occupied: 1120, opd_patients: 360, emergency_patients: 126 }, { icu_occupied: 255, general_occupied: 1140, opd_patients: 372, emergency_patients: 130 }, { icu_occupied: 260, general_occupied: 1158, opd_patients: 381, emergency_patients: 136 }, { icu_occupied: 268, general_occupied: 1176, opd_patients: 390, emergency_patients: 142 }];
+const statusStyle = (s: string) => s === "critical" ? "bg-rose-50 text-rose-700 border-rose-100" : s === "high" ? "bg-amber-50 text-amber-700 border-amber-100" : s === "moderate" ? "bg-yellow-50 text-yellow-700 border-yellow-100" : "bg-emerald-50 text-emerald-700 border-emerald-100";
+const barStyle = (s: string) => s === "critical" ? "bg-rose-500" : s === "high" ? "bg-amber-500" : s === "moderate" ? "bg-yellow-500" : "bg-emerald-500";
+const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function Metric({ label, value, detail, icon: Icon, trend }: MetricProps) {
-  return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className="rounded-[22px] border border-black/[0.06] bg-white p-5 transition-shadow duration-300 hover:shadow-[0_15px_45px_rgba(0,0,0,0.05)]"
-    >
-      <div className="flex items-start justify-between">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f0f3f2] text-black/45">
-          <Icon size={16} strokeWidth={1.7} />
-        </div>
+export default function HospitalDashboardPage() {
+  const [form, setForm] = useState({ icuTotal: 300, icuOccupied: 280, wardTotal: 1500, wardOccupied: 1200, opd: 400, emergency: 150, doctors: 85 });
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const icuPercent = useMemo(() => Math.round((form.icuOccupied / form.icuTotal) * 1000) / 10, [form]);
+  const wardPercent = useMemo(() => Math.round((form.wardOccupied / form.wardTotal) * 1000) / 10, [form]);
+  const set = (key: keyof typeof form, value: string) => setForm((p) => ({ ...p, [key]: Math.max(0, Number(value) || 0) }));
 
-        {trend === "up" && <TrendingUp size={14} className="text-[#608d82]" />}
-        {trend === "warning" && (
-          <AlertTriangle size={14} className="text-[#ad8050]" />
-        )}
+  async function analyse() {
+    if (!form.icuTotal || !form.wardTotal || !form.doctors || form.icuOccupied > form.icuTotal || form.wardOccupied > form.wardTotal) { setError("Enter valid capacity values. Occupied beds cannot exceed total beds."); return; }
+    setLoading(true); setError("");
+    try {
+      const res = await fetch("/api/capacity", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ icu: { total_beds: form.icuTotal, occupied_beds: form.icuOccupied }, general_ward: { total_beds: form.wardTotal, occupied_beds: form.wardOccupied }, opd_patients: form.opd, emergency_patients: form.emergency, doctors_available: form.doctors, history, nearby_hospitals: [{ name: "Green Valley Medical Centre", distance_km: 4.8, icu_total: 120, icu_occupied: 62, general_total: 500, general_occupied: 275 }, { name: "Riverside Hospital", distance_km: 7.2, icu_total: 90, icu_occupied: 76, general_total: 380, general_occupied: 320 }, { name: "Metro Care Hospital", distance_km: 9.6, icu_total: 160, icu_occupied: 101, general_total: 700, general_occupied: 410 }] }) });
+      const data = await res.json(); if (!res.ok) throw new Error(data.error || "Unable to analyse capacity."); setAnalysis(data as Analysis);
+    } catch (e) { setError(e instanceof Error ? e.message : "Unable to analyse capacity."); } finally { setLoading(false); }
+  }
+
+  return <main className="min-h-screen bg-[#f5f7f6] text-[#17201d]">
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-black/[.06] bg-[#f9fbfa]/90 px-5 py-4 backdrop-blur-xl sm:px-10"><Link href="/" className="flex items-center gap-3"><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white"><Activity size={17}/></span><span><b className="block text-sm tracking-[-.02em]">VITAWEAVE</b><small className="text-[8px] font-medium uppercase tracking-[.2em] text-black/40">Hospital intelligence</small></span></Link><div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[.13em] text-black/45"><span className="h-2 w-2 rounded-full bg-emerald-500"/>Operations online <Building2 size={15}/><span className="hidden sm:inline">City General Hospital</span></div></header>
+    <div className="mx-auto max-w-[1440px] px-5 py-7 sm:px-10">
+      <section className="relative overflow-hidden rounded-[28px] border border-black/[.06] bg-[#e9eff2] p-6 sm:p-9"><div className="absolute -right-24 -top-28 h-80 w-80 rounded-full bg-blue-200/40 blur-3xl"/><div className="relative grid gap-8 lg:grid-cols-[1.35fr_.65fr] lg:items-end"><div><p className="mb-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.18em] text-[#54749a]"><span className="h-1.5 w-1.5 rounded-full bg-[#54749a]"/>Adaptive demand intelligence</p><h1 className="max-w-3xl text-[clamp(2.7rem,6vw,5.7rem)] font-medium leading-[.87] tracking-[-.07em]">See pressure early.<br/><span className="text-black/35">Plan capacity with confidence.</span></h1><p className="mt-6 max-w-2xl text-sm leading-6 text-black/55">Enter today&apos;s operational data. The model combines it with synthetic hospital patterns and recent observations to forecast the next seven days—not simply repeat today&apos;s numbers.</p></div><div className="rounded-2xl border border-white/60 bg-white/65 p-5 shadow-[0_18px_50px_rgba(34,59,75,.08)] backdrop-blur"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#17201d] text-white"><TrendingUp size={18}/></span><div><p className="text-xs font-semibold">Forecast model ready</p><p className="mt-1 text-[10px] text-black/45">Seasonality · weekday load · trend calibration</p></div></div><button onClick={analyse} disabled={loading} className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#17201d] text-xs font-medium text-white transition hover:bg-[#2c3b36] disabled:opacity-60">{loading ? <RefreshCw size={14} className="animate-spin"/> : <ArrowUpRight size={14}/>} {loading ? "Analysing demand…" : "Run 7-day capacity analysis"}</button></div></div></section>
+      <div className="mt-5 grid gap-5 xl:grid-cols-[.88fr_1.12fr]">
+        <section className="rounded-[23px] border border-black/[.06] bg-white p-6 shadow-[0_8px_30px_rgba(20,30,25,.025)]"><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-black/45">Daily operational input</p><h2 className="mt-1 text-xl font-medium tracking-[-.04em]">Today&apos;s capacity snapshot</h2><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">{[["ICU total beds","icuTotal"],["ICU occupied","icuOccupied"],["Ward total beds","wardTotal"],["Ward occupied","wardOccupied"],["OPD patients","opd"],["Emergency patients","emergency"],["Doctors available","doctors"]].map(([label,key]) => <label key={key} className="block"><span className="mb-1.5 block text-[9px] font-medium uppercase tracking-[.1em] text-black/40">{label}</span><input type="number" min="0" value={form[key as keyof typeof form]} onChange={(e) => set(key as keyof typeof form, e.target.value)} className="h-10 w-full rounded-lg border border-black/[.09] bg-[#fbfcfb] px-3 text-sm outline-none focus:border-[#54749a] focus:ring-2 focus:ring-[#54749a]/10"/></label>)}</div><div className="mt-5 grid grid-cols-2 gap-3"><Mini label="ICU live occupancy" value={`${icuPercent}%`} detail={`${form.icuTotal-form.icuOccupied} beds available`}/><Mini label="Ward live occupancy" value={`${wardPercent}%`} detail={`${form.wardTotal-form.wardOccupied} beds available`}/></div>{error && <p className="mt-4 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{error}</p>}</section>
+        <section className="rounded-[23px] border border-black/[.06] bg-[#17201d] p-6 text-white"><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-white/45">Decision summary</p><h2 className="mt-1 text-xl font-medium tracking-[-.04em]">What the model sees next</h2>{analysis ? <><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4"><Mini dark label="ICU beds now" value={`${analysis.current.icu_available_beds}`}/><Mini dark label="Peak ICU demand" value={`${analysis.peak.icu_demand}`}/><Mini dark label="Doctors needed" value={`${analysis.peak.doctor_demand}`}/><Mini dark label="Expected peak" value={analysis.peak.day}/></div><div className="mt-5 rounded-xl border border-white/10 bg-white/[.07] p-4 text-xs leading-5 text-white/75">{analysis.shortage_risk ? "Capacity shortage risk identified during the forecast window." : "No bed-capacity breach predicted in the forecast window."} <span className="text-white/45">Peak demand score: {analysis.peak.demand_score}/100.</span></div></> : <div className="mt-8 rounded-xl border border-dashed border-white/15 p-6 text-center"><TrendingUp className="mx-auto text-white/35" size={24}/><p className="mt-3 text-sm text-white/70">Run the analysis to see the seven-day forecast.</p><p className="mt-1 text-[10px] text-white/40">Uses a synthetic baseline calibrated by recent observations.</p></div>}</section>
       </div>
-
-      <p className="mt-7 text-[10px] uppercase tracking-[0.12em] text-black/30">
-        {label}
-      </p>
-
-      <div className="mt-1 flex items-end justify-between gap-3">
-        <p className="text-3xl font-medium tracking-[-0.055em]">{value}</p>
-        <p className="mb-1 text-[9px] text-black/35">{detail}</p>
-      </div>
-    </motion.div>
-  );
+      {analysis && <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_.8fr]"><section className="rounded-[23px] border border-black/[.06] bg-white p-6"><div className="flex items-center justify-between"><div><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-black/45">7-day demand forecast</p><h2 className="mt-1 text-xl font-medium tracking-[-.04em]">Demand trajectory</h2></div><span className={`rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.12em] ${statusStyle(analysis.peak.status)}`}>Peak {title(analysis.peak.status)}</span></div><div className="mt-6 space-y-3">{analysis.forecast.map((item) => <div key={item.date} className="grid grid-cols-[42px_1fr_45px] items-center gap-3"><span className="text-xs font-medium">{item.day}</span><div><div className="h-2 rounded-full bg-black/[.06]"><div className={`h-2 rounded-full ${barStyle(item.status)}`} style={{width:`${Math.min(item.demand_score,100)}%`}}/></div><p className="mt-1 text-[10px] text-black/43">ICU {item.icu_demand} · Ward {item.general_demand} · OPD {item.opd_patients} · {item.doctor_demand} doctors</p></div><span className="text-right text-xs font-medium">{item.demand_score}%</span></div>)}</div></section><section className="rounded-[23px] border border-black/[.06] bg-white p-6"><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-black/45">Recommended actions</p><h2 className="mt-1 text-xl font-medium tracking-[-.04em]">Act before the peak</h2><div className="mt-5 space-y-3">{analysis.recommended_actions.map((action) => <div key={action} className="flex gap-3 rounded-xl bg-[#f8faf9] p-3.5"><CheckCircle2 size={16} className="mt-0.5 shrink-0 text-[#608d82]"/><p className="text-xs leading-5 text-black/62">{action}</p></div>)}</div><p className="mt-4 text-[10px] leading-4 text-black/38">{analysis.disclaimer}</p></section></motion.div>}
+      {analysis && <section className="mt-5 rounded-[23px] border border-black/[.06] bg-white p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-black/45">Regional capacity network</p><h2 className="mt-1 text-xl font-medium tracking-[-.04em]">Nearby lower-demand support options</h2></div><p className="flex items-center gap-1.5 text-[10px] text-black/40"><MapPin size={13}/>Within 10 km</p></div>{analysis.nearby_support_candidates.length ? <div className="mt-5 grid gap-3 md:grid-cols-3">{analysis.nearby_support_candidates.map((h) => <div key={h.name} className="rounded-xl border border-black/[.06] bg-[#fbfcfb] p-4"><div className="flex items-start justify-between"><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#edf3f1] text-[#4c756c]"><Hospital size={15}/></span><span className={`rounded-full border px-2 py-0.5 text-[8px] font-bold uppercase ${statusStyle(h.status)}`}>{title(h.status)}</span></div><p className="mt-4 text-sm font-semibold">{h.name}</p><p className="mt-1 text-[10px] text-black/45">{h.distance_km.toFixed(1)} km away</p><div className="mt-4 grid grid-cols-2 gap-2 border-t border-black/[.06] pt-3 text-[10px]"><span><b className="block text-base">{h.available_icu_beds}</b>ICU beds</span><span><b className="block text-base">{h.available_general_beds}</b>ward beds</span></div></div>)}</div> : <p className="mt-5 rounded-xl bg-[#f8faf9] p-4 text-sm text-black/50">No lower-demand support options were identified within 10 km.</p>}<p className="mt-4 flex items-start gap-2 text-[10px] leading-4 text-black/40"><AlertTriangle size={13} className="mt-0.5 shrink-0"/>Recommendations identify coordination candidates only. Authorised hospital teams must confirm capacity and patient suitability before any transfer.</p></section>}
+      <footer className="mt-8 flex flex-col gap-3 border-t border-black/[.06] py-5 text-[9px] uppercase tracking-[.14em] text-black/30 sm:flex-row sm:justify-between"><span className="flex items-center gap-2"><ShieldCheck size={13}/>Clinical operations decision support</span><span className="flex items-center gap-2"><Stethoscope size={13}/>Synthetic-adaptive forecasting</span></footer>
+    </div></main>;
 }
-
-// ─── Ward row ─────────────────────────────────────────────────────────────────
-
-interface WardProps {
-  name: string;
-  capacity: number;
-  occupied: number;
-  status: "normal" | "high" | "critical";
-}
-
-function WardRow({ name, capacity, occupied, status }: WardProps) {
-  const pct = Math.round((occupied / capacity) * 100);
-  const barColor =
-    status === "critical"
-      ? "bg-[#ad8050]"
-      : status === "high"
-      ? "bg-[#a09b55]"
-      : "bg-[#608d82]";
-  const badge =
-    status === "critical"
-      ? "bg-[#fdf3ec] text-[#ad8050]"
-      : status === "high"
-      ? "bg-[#fdfaec] text-[#8a8440]"
-      : "bg-[#edf3f1] text-[#4c756c]";
-
-  return (
-    <div className="flex items-center gap-5 rounded-2xl border border-black/[0.05] bg-[#f9faf9] px-5 py-4">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-black/[0.06] bg-white">
-        <BedDouble size={14} className="text-black/40" />
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-3">
-          <p className="truncate text-sm font-medium">{name}</p>
-          <span
-            className={`shrink-0 rounded-full px-2.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${badge}`}
-          >
-            {status === "critical" ? "Critical" : status === "high" ? "High" : "Normal"}
-          </span>
-        </div>
-
-        <div className="mt-2 h-1 w-full rounded-full bg-black/[0.06]">
-          <div
-            className={`h-1 rounded-full transition-all duration-500 ${barColor}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-
-        <p className="mt-1.5 text-[9px] text-black/35">
-          {occupied} / {capacity} beds · {pct}% occupied
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-export default function Page() {
-  return (
-    <main className="min-h-screen bg-[#f4f6f5] text-[#17201d]">
-      {/* ── Topbar ── */}
-      <header className="flex items-center justify-between border-b border-black/[0.06] bg-[#f8faf9] px-6 py-4 sm:px-10">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white">
-            <Activity size={17} strokeWidth={2.2} />
-          </div>
-          <div>
-            <div className="text-[15px] font-semibold tracking-[-0.02em]">
-              VITAWEAVE
-            </div>
-            <div className="text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581]">
-              Hospital Workspace
-            </div>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-black/35 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#6c998d]" />
-            Operations online
-          </div>
-
-          <div className="h-5 w-px bg-black/10" />
-
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-black/[0.07] bg-white">
-              <Building2 size={14} className="text-black/40" />
-            </div>
-            <span className="hidden text-xs font-medium sm:block">
-              City General Hospital
-            </span>
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-[1400px] px-6 py-8 sm:px-10">
-        {/* ── Hero ── */}
-        <section className="relative overflow-hidden rounded-[28px] border border-black/[0.06] bg-[#edf1f5] px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
-          <div className="absolute -right-32 -top-32 h-[420px] w-[420px] rounded-full bg-[#d4dfe8] opacity-70 blur-3xl" />
-          <div className="absolute bottom-[-180px] right-[20%] h-[320px] w-[320px] rounded-full bg-white/70 blur-3xl" />
-
-          <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_0.55fr]">
-            <div>
-              <div className="mb-5 flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#54749a]" />
-                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#54749a]">
-                  Hospital operations
-                </span>
-              </div>
-
-              <h1 className="max-w-2xl text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[0.88] tracking-[-0.065em]">
-                Manage capacity.
-                <br />
-                <span className="text-black/30">Anticipate demand.</span>
-              </h1>
-
-              <p className="mt-7 max-w-xl text-sm leading-6 text-black/50">
-                VITAWEAVE tracks your hospital&apos;s bed occupancy, admission
-                forecasts and resource pressure — so your operations team can
-                act before capacity is breached.
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <button className="group flex h-11 items-center gap-3 rounded-xl bg-[#17201d] px-5 text-xs font-medium text-white transition hover:bg-[#25312d]">
-                  View capacity report
-                  <ArrowUpRight
-                    size={14}
-                    className="transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  />
-                </button>
-
-                <button className="flex h-11 items-center gap-3 rounded-xl border border-black/[0.08] bg-white/70 px-5 text-xs font-medium text-black/60 transition hover:bg-white">
-                  <Zap size={14} />
-                  7-day forecast
-                </button>
-              </div>
-            </div>
-
-            {/* Capacity visual */}
-            <div className="relative hidden h-[280px] lg:block">
-              <div className="absolute left-1/2 top-1/2 h-[220px] w-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/[0.06]" />
-              <div className="absolute left-1/2 top-1/2 h-[155px] w-[155px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/[0.07]" />
-              <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-white/80 shadow-[0_25px_70px_rgba(30,50,70,0.10)] backdrop-blur-xl">
-                <Building2 size={22} strokeWidth={1.4} className="text-[#54749a]" />
-                <span className="mt-1.5 font-mono text-[8px] tracking-[0.15em] text-black/35">
-                  CAPACITY
-                </span>
-              </div>
-
-              {[
-                { label: "BED OCC.", value: "78%", pos: "left-[4%] top-[22%]" },
-                { label: "ADMISSIONS", value: "+14", pos: "right-[2%] top-[28%]" },
-                { label: "FORECAST", value: "HIGH", pos: "bottom-[16%] left-[12%]" },
-                { label: "ICU", value: "91%", pos: "bottom-[20%] right-[8%]" },
-              ].map((node) => (
-                <div
-                  key={node.label}
-                  className={`absolute ${node.pos} rounded-xl border border-black/[0.06] bg-white/75 px-3 py-2 backdrop-blur-xl`}
-                >
-                  <p className="font-mono text-[7px] text-black/30">{node.label}</p>
-                  <p className="mt-0.5 text-xs font-medium">{node.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Metrics ── */}
-        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <Metric label="Total beds" value="420" detail="+8 since last month" icon={BedDouble} trend="neutral" />
-          <Metric label="Occupied beds" value="328" detail="78% occupancy" icon={Users} trend="warning" />
-          <Metric label="Admissions today" value="47" detail="+11% vs yesterday" icon={ArrowUpRight} trend="up" />
-          <Metric label="Avg wait time" value="24m" detail="−3m vs last week" icon={Clock} trend="up" />
-        </section>
-
-        {/* ── Ward capacity ── */}
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-          <section className="rounded-[22px] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(20,30,25,0.025)]">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">
-                  Ward capacity
-                </p>
-                <p className="mt-1 text-lg font-medium tracking-[-0.03em]">
-                  Live occupancy
-                </p>
-              </div>
-              <span className="flex items-center gap-1.5 rounded-full border border-black/[0.07] bg-[#f8faf9] px-3 py-1.5 text-[9px] font-medium text-black/40">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#6c998d]" />
-                Live
-              </span>
-            </div>
-
-            <div className="space-y-2.5">
-              <WardRow name="General Ward A" capacity={80} occupied={68} status="high" />
-              <WardRow name="ICU" capacity={30} occupied={27} status="critical" />
-              <WardRow name="Paediatrics" capacity={50} occupied={31} status="normal" />
-              <WardRow name="Cardiology" capacity={40} occupied={35} status="critical" />
-              <WardRow name="Orthopaedics" capacity={45} occupied={29} status="normal" />
-              <WardRow name="General Ward B" capacity={60} occupied={44} status="high" />
-            </div>
-          </section>
-
-          {/* Demand forecast + alerts */}
-          <div className="flex flex-col gap-5">
-            <section className="rounded-[22px] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(20,30,25,0.025)]">
-              <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">
-                7-day demand forecast
-              </p>
-
-              <div className="space-y-2">
-                {[
-                  { day: "Today", level: 78, label: "High" },
-                  { day: "Tomorrow", level: 83, label: "Critical" },
-                  { day: "Day 3", level: 75, label: "High" },
-                  { day: "Day 4", level: 64, label: "Moderate" },
-                  { day: "Day 5", level: 58, label: "Normal" },
-                  { day: "Day 6", level: 61, label: "Normal" },
-                  { day: "Day 7", level: 70, label: "High" },
-                ].map((item) => (
-                  <div key={item.day} className="flex items-center gap-3">
-                    <span className="w-16 shrink-0 text-[10px] text-black/40">
-                      {item.day}
-                    </span>
-                    <div className="flex-1 h-1.5 rounded-full bg-black/[0.06]">
-                      <div
-                        className={`h-1.5 rounded-full ${
-                          item.level >= 80
-                            ? "bg-[#ad8050]"
-                            : item.level >= 70
-                            ? "bg-[#a09b55]"
-                            : "bg-[#608d82]"
-                        }`}
-                        style={{ width: `${item.level}%` }}
-                      />
-                    </div>
-                    <span className="w-16 text-right text-[9px] text-black/35">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded-[22px] border border-black/[0.06] bg-white p-6 shadow-[0_8px_30px_rgba(20,30,25,0.025)]">
-              <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">
-                Active alerts
-              </p>
-
-              <div className="space-y-2">
-                {[
-                  { msg: "ICU at 90% — escalate admissions review", sev: "critical" },
-                  { msg: "Cardiology surge expected tomorrow", sev: "high" },
-                  { msg: "Paediatrics staffing below threshold", sev: "high" },
-                  { msg: "Laundry & sterilisation delay — 2 h", sev: "normal" },
-                ].map((alert, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 rounded-xl border border-black/[0.05] bg-[#f9faf9] px-4 py-3"
-                  >
-                    <AlertTriangle
-                      size={13}
-                      className={`mt-0.5 shrink-0 ${
-                        alert.sev === "critical"
-                          ? "text-[#ad8050]"
-                          : alert.sev === "high"
-                          ? "text-[#a09b55]"
-                          : "text-black/30"
-                      }`}
-                    />
-                    <p className="text-[11px] leading-5 text-black/55">{alert.msg}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-        </div>
-
-        {/* ── Footer ── */}
-        <footer className="mt-8 flex flex-col gap-3 border-t border-black/[0.06] py-5 text-[9px] uppercase tracking-[0.15em] text-black/25 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={13} />
-            Secure hospital operations platform
-          </div>
-          <div className="font-mono">VITAWEAVE / HOSPITAL INTELLIGENCE SYSTEM</div>
-        </footer>
-      </div>
-    </main>
-  );
-}
+function Mini({label,value,detail,dark=false}:{label:string;value:string;detail?:string;dark?:boolean}) { return <div className={dark ? "rounded-xl border border-white/10 bg-white/[.07] p-3" : "rounded-xl bg-[#f8faf9] p-4"}><p className={dark ? "text-xl font-medium tracking-[-.05em]" : "text-2xl font-medium tracking-[-.06em]"}>{value}</p><p className={dark ? "mt-1 text-[9px] uppercase tracking-[.1em] text-white/45" : "mt-1 text-[9px] uppercase tracking-[.12em] text-black/40"}>{label}</p>{detail && <p className="mt-1 text-[10px] text-black/45">{detail}</p>}</div>; }

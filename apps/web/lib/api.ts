@@ -5,10 +5,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 export interface AuthUser {
   id: string;
   email: string;
-  role: "ADMIN" | "DOCTOR" | "PATIENT";
+  role: "ADMIN" | "DOCTOR" | "PATIENT" | "HOSPITAL";
   full_name: string;
   doctor_id?: string;
   patient_id?: string;
+  hospital_id?: string;
 }
 
 export class ApiError extends Error {
@@ -149,6 +150,15 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }, false),
+
+  registerHospital: (payload: {
+    email: string; password: string; fullName: string; role: "HOSPITAL";
+    hospitalName: string; hospitalType: string; registrationNumber: string;
+    phone: string; address: string; city: string; state: string; pincode: string;
+    latitude: number; longitude: number; totalBeds: number; icuBeds: number; activeDoctors: number;
+  }) => request<{ token: string; user: AuthUser }>('/api/auth/register', {
+    method: "POST", body: JSON.stringify(payload),
+  }, false),
 
   login: (email: string, password: string) =>
     request<{ token: string; user: AuthUser }>("/api/auth/login", {

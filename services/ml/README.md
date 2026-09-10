@@ -3,6 +3,28 @@
 FastAPI service that loads the **actual trained models** from `ml-models/` and
 serves real predictions to the web frontend (patient `modelDisplay`).
 
+## Hospital capacity forecast model
+
+The hospital dashboard uses a separate persisted `RandomForestRegressor`, not
+a hard-coded occupancy calculation. It is trained on reproducible multi-hospital
+synthetic daily occupancy sequences and predicts ICU demand, general-bed demand,
+OPD volume, emergency volume, and doctor demand for each of the next seven days.
+
+Train or refresh the synthetic model artifact:
+
+```bash
+services/ml/venv/bin/python services/ml/train_capacity_model.py
+```
+
+This writes `ml-models/capacity-demand/synthetic_capacity_forecaster.joblib` and
+the inspectable training dataset
+`ml-models/capacity-demand/synthetic_hospital_capacity_training_data.csv`.
+The endpoint is `POST /api/capacity/analyze`. Supply the latest daily
+observations in `history`; their smoothed movement is included as forecast
+features. In production, retain these observations in a hospital database and
+periodically retrain the artifact only after validation confirms the new model
+is better than the currently deployed version.
+
 ## Endpoints
 
 | Method | Path               | Description                                  |

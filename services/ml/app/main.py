@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.predict import router as predict_router
+from .api.capacity import router as capacity_router
 from .config import settings
 from .registry import load_all, registry
 
@@ -39,3 +40,4 @@ async def health():
 
 
 app.include_router(predict_router, prefix="/api", tags=["predict"])
+app.include_router(capacity_router, prefix="/api", tags=["capacity"])
