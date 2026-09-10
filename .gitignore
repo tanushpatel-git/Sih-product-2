@@ -36,5 +36,9 @@ ml-models/
 *.pkl
 *.onnx
 
+# Exception: capacity-demand model + training data tracked via Git LFS
+!ml-models/
+!ml-models/capacity-demand/
+
 # Model artifacts (keep code, not binaries)
 *.pkl
