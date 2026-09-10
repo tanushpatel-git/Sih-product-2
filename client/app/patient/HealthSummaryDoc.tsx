@@ -52,7 +52,6 @@ export default function HealthSummaryDoc({
   const handleDownloadPng = () => {
     if (!docRef.current) return;
     // Canvas rasterization
-    const el = docRef.current;
     const canvas = document.createElement("canvas");
     canvas.width = 800;
     canvas.height = 1130;

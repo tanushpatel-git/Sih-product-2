@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { ArrowUpRight, MessageCircle, Brain } from "lucide-react";
 
-export default function DoctorHero() {
+interface DoctorHeroProps {
+  doctor?: {
+    name: string;
+    specialty: string;
+    licenseNumber: string;
+  };
+}
+
+export default function DoctorHero({ doctor }: DoctorHeroProps) {
   return (
     <section className="relative overflow-hidden rounded-[28px] border border-black/[0.06] bg-[#edf3f1] px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
       <div className="absolute -right-32 -top-32 h-[420px] w-[420px] rounded-full bg-[#d7e7e2] opacity-70 blur-3xl" />
@@ -12,12 +20,25 @@ export default function DoctorHero() {
 
       <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_0.65fr]">
         <div>
-          <div className="mb-5 flex items-center gap-2">
+          <div className="mb-5 flex flex-wrap items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-[#5c8a7e]" />
 
             <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4c756c]">
               Clinical intelligence
             </span>
+
+            {doctor && (
+              <>
+                <span className="text-black/20">·</span>
+                <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-black/40">
+                  {doctor.specialty || "General Medicine"}
+                </span>
+                <span className="text-black/20">·</span>
+                <span className="font-mono text-[9px] tracking-wider text-[#4c756c]">
+                  LIC: {doctor.licenseNumber || "LIC-IN-2026"}
+                </span>
+              </>
+            )}
           </div>
 
           <h2 className="max-w-2xl text-[clamp(2.8rem,5vw,5.5rem)] font-medium leading-[0.88] tracking-[-0.065em]">

@@ -1,13 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
-  LayoutDashboard,
   Brain,
-  Users,
   FileText,
-  MessageCircle,
+  MessageSquare,
   Settings,
   ShieldCheck,
   Stethoscope,
@@ -15,48 +13,48 @@ import {
   LogOut,
 } from "lucide-react";
 
+
 const navigation = [
   {
-    label: "Overview",
-    href: "/doctor/dashboard",
-    icon: LayoutDashboard,
+    id: "conversations",
+    label: "Conversations",
+    icon: MessageSquare,
   },
   {
-    label: "Clinical Intelligence",
-    href: "/doctor/clinical",
-    icon: Brain,
-  },
-  {
-    label: "Patients",
-    href: "/doctor/patients",
-    icon: Users,
-  },
-  {
-    label: "Assessments",
-    href: "/doctor/assessments",
+    id: "knowledge",
+    label: "Knowledge documents",
     icon: FileText,
+  },
+  {
+    id: "ai-config",
+    label: "AI configuration",
+    icon: Settings,
   },
 ];
 
 const secondaryNavigation = [
   {
+    id: "tlux",
     label: "TLUX",
-    href: "/doctor/ai",
-    icon: MessageCircle,
-  },
-  {
-    label: "Settings",
-    href: "/doctor/settings",
-    icon: Settings,
+    icon: Brain,
   },
 ];
 
 interface DoctorSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  activeTab?: string;
+  onSelectTab?: (tab: string) => void;
 }
 
-export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
+export default function DoctorSidebar({
+  isOpen,
+  onClose,
+  activeTab = "ai-config",
+  onSelectTab,
+}: DoctorSidebarProps) {
+  const router = useRouter();
+
   return (
     <aside
       className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-black/[0.06] bg-[#f8faf9] transition-transform duration-300 lg:translate-x-0 ${
@@ -65,7 +63,10 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
     >
       {/* Logo */}
       <div className="flex h-[82px] items-center justify-between border-b border-black/[0.06] px-6">
-        <Link href="/doctor/dashboard" className="flex items-center gap-3">
+        <button
+          onClick={() => onSelectTab?.("ai-config")}
+          className="flex items-center gap-3 text-left"
+        >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white">
             <Activity size={17} />
           </div>
@@ -79,7 +80,7 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
               Clinical Intelligence
             </p>
           </div>
-        </Link>
+        </button>
 
         <button
           onClick={onClose}
@@ -92,17 +93,17 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
       {/* Doctor */}
       <div className="border-b border-black/[0.06] px-5 py-5">
         <div className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-[0_5px_25px_rgba(0,0,0,0.03)]">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e4eeeb] text-[#4c756c]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e4eeeb] text-[#4c756c]">
             <Stethoscope size={17} />
           </div>
 
           <div className="min-w-0">
             <p className="truncate text-xs font-semibold">
-              Dr. Ananya Sharma
+              Doctor Workspace
             </p>
 
-            <p className="mt-0.5 text-[10px] text-black/40">
-              General Medicine
+            <p className="mt-0.5 truncate text-[10px] text-black/40">
+              VITAWEAVE
             </p>
           </div>
         </div>
@@ -115,15 +116,19 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
         </p>
 
         <nav className="space-y-1">
-          {navigation.map((item, index) => {
+          {navigation.map((item) => {
             const Icon = item.icon;
+            const isActive = activeTab === item.id;
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`group flex items-center justify-between rounded-xl px-3 py-3 text-xs transition ${
-                  index === 0
+              <button
+                key={item.id}
+                onClick={() => {
+                  onSelectTab?.(item.id);
+                  onClose();
+                }}
+                className={`group flex w-full items-center justify-between rounded-xl px-3 py-3 text-xs transition ${
+                  isActive
                     ? "bg-[#17201d] text-white"
                     : "text-black/50 hover:bg-white hover:text-black"
                 }`}
@@ -133,10 +138,10 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
                   {item.label}
                 </span>
 
-                {index === 0 && (
+                {isActive && (
                   <span className="h-1.5 w-1.5 rounded-full bg-[#91b5aa]" />
                 )}
-              </Link>
+              </button>
             );
           })}
         </nav>
@@ -148,12 +153,20 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
         <nav className="space-y-1">
           {secondaryNavigation.map((item) => {
             const Icon = item.icon;
+            const isActive = activeTab === item.id;
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="group flex items-center justify-between rounded-xl px-3 py-3 text-xs text-black/50 transition hover:bg-white hover:text-black"
+              <button
+                key={item.id}
+                onClick={() => {
+                  onSelectTab?.(item.id);
+                  onClose();
+                }}
+                className={`group flex w-full items-center justify-between rounded-xl px-3 py-3 text-xs transition ${
+                  isActive
+                    ? "bg-[#17201d] text-white"
+                    : "text-black/50 hover:bg-white hover:text-black"
+                }`}
               >
                 <span className="flex items-center gap-3">
                   <Icon size={16} strokeWidth={1.8} />
@@ -165,7 +178,7 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
                     AI
                   </span>
                 )}
-              </Link>
+              </button>
             );
           })}
         </nav>
@@ -190,7 +203,10 @@ export default function DoctorSidebar({ isOpen, onClose }: DoctorSidebarProps) {
           </div>
         </div>
 
-        <button className="mt-5 flex items-center gap-3 px-1 text-[10px] text-black/35 transition hover:text-black/70">
+        <button
+          onClick={() => router.push("/doctor/login")}
+          className="mt-5 flex items-center gap-3 px-1 text-[10px] text-black/35 transition hover:text-black/70"
+        >
           <LogOut size={14} />
           Sign out
         </button>

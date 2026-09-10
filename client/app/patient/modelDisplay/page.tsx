@@ -506,10 +506,12 @@ export default function ClinicalDashboardPage() {
     }
 
     return baseConfig;
-  }, [activeModelKey, liveAnemiaResult, liveBcResult, liveDiabetesResult, liveHfResult, liveKidneyResult, liveStrokeResult, liveHdResult, liveLiverResult, anemiaInputs, bcInputs, diabetesInputs, hfInputs, kidneyInputs, strokeInputs, hdInputs, liverInputs]);
+  }, [activeModelKey, liveAnemiaResult, liveBcResult, liveDiabetesResult, liveHfResult, liveKidneyResult, liveStrokeResult, liveHdResult, liveLiverResult, anemiaInputs, bcInputs, diabetesInputs, hfInputs, strokeInputs, hdInputs, liverInputs]);
 
   // ── Animated risk counter ────────────────────────────────────────────────────
-  const [displayRisk, setDisplayRisk] = useState<number>(modelConfig.risk);
+  const [animating, setAnimating] = useState(false);
+  const [animatedRisk, setAnimatedRisk] = useState<number>(modelConfig.risk);
+  const displayRisk = animating ? animatedRisk : modelConfig.risk;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // ── Assessment sequence ──────────────────────────────────────────────────────
@@ -517,7 +519,8 @@ export default function ClinicalDashboardPage() {
     if (timerRef.current) clearTimeout(timerRef.current);
     setClinicalState("ASSESSING");
     setAssessingPhase("INGESTING");
-    setDisplayRisk(0);
+    setAnimatedRisk(0);
+    setAnimating(true);
     setSelectedFactorId(null);
 
     timerRef.current = setTimeout(() => {
@@ -532,10 +535,11 @@ export default function ClinicalDashboardPage() {
           const countInterval = setInterval(() => {
             current += step;
             if (current >= target) {
-              setDisplayRisk(target);
+              setAnimatedRisk(target);
+              setAnimating(false);
               clearInterval(countInterval);
             } else {
-              setDisplayRisk(current);
+              setAnimatedRisk(current);
             }
           }, 24);
         }, 1200);
@@ -560,7 +564,7 @@ export default function ClinicalDashboardPage() {
     else if (key === "liverDisease") targetRisk = Math.round(liveLiverResult.probabilityPercent);
     else targetRisk = clinicalModels[key]?.risk ?? 50;
 
-    setDisplayRisk(targetRisk);
+    setAnimatedRisk(targetRisk);
     setClinicalState("RESULT");
 
     const greetings: Record<ActiveModelKey, string> = {
@@ -877,12 +881,6 @@ export default function ClinicalDashboardPage() {
     document.addEventListener("click", handler);
     return () => document.removeEventListener("click", handler);
   }, [modelDropdownOpen]);
-
-  useEffect(() => {
-    if (clinicalState === "RESULT") {
-      setDisplayRisk(modelConfig.risk);
-    }
-  }, [modelConfig.risk, clinicalState]);
 
   const activeFactor =
     modelConfig.factors.find((f) => f.id === selectedFactorId) ||
@@ -1397,7 +1395,7 @@ export default function ClinicalDashboardPage() {
                     ["symmetry_se", "Symmetry SE", "", 0.007, 0.08, 0.001],
                     ["fractal_dimension_se", "Fractal Dim SE", "", 0.0008, 0.03, 0.0005],
                   ] as [keyof BreastCancerInputs, string, string, number, number, number][]
-                ).map(([key, label, unit, min, max, step]) => (
+                ).map(([key, label, min, max, step]) => (
                   <div key={key} className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs">
                     <div className="flex justify-between items-center mb-1">
                       <label className="text-[9px] font-bold uppercase tracking-wider text-slate-500 truncate">

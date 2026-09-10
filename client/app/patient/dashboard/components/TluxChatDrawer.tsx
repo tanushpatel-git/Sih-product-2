@@ -1,14 +1,19 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Sparkles, X, Activity, ShieldCheck, ArrowUpRight } from "lucide-react";
+import { Sparkles, X, ShieldCheck, ArrowUpRight } from "lucide-react";
 
 interface TluxChatDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  patientName?: string;
 }
 
-export default function TluxChatDrawer({ isOpen, onClose }: TluxChatDrawerProps) {
+export default function TluxChatDrawer({
+  isOpen,
+  onClose,
+  patientName,
+}: TluxChatDrawerProps) {
   if (!isOpen) return null;
 
   return (
@@ -103,7 +108,7 @@ export default function TluxChatDrawer({ isOpen, onClose }: TluxChatDrawerProps)
         <div className="flex-1 overflow-y-auto px-6 py-7">
           <div className="max-w-[330px] rounded-[17px] rounded-tl-[5px] border border-[#e0e7e3] bg-white p-4 shadow-[0_10px_30px_rgba(40,66,58,0.04)]">
             <p className="text-[10px] leading-5 text-[#596963]">
-              Hello Vedant. I can help you understand your
+              Hello {patientName ? patientName.trim().split(/\s+/)[0] : "there"}. I can help you understand your
               health signals and prepare questions for your
               next clinical conversation.
             </p>

@@ -103,7 +103,7 @@ export default function TluxChatDrawer({ isOpen, onClose }: TluxChatDrawerProps)
         <div className="flex-1 overflow-y-auto px-6 py-7">
           <div className="max-w-[330px] rounded-[17px] rounded-tl-[5px] border border-black/[0.06] bg-white p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)]">
             <p className="text-[10px] leading-5 text-black/50">
-              Hello Dr. Sharma. I can help you analyze patient
+              Hello. I can help you analyze patient
               risk, understand clinical signals, and prepare
               for your consultations.
             </p>

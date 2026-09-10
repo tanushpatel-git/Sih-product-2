@@ -3,8 +3,6 @@
 import {
   Activity,
   HeartPulse,
-  CalendarDays,
-  FileText,
   Sparkles,
   Settings,
   ShieldCheck,
@@ -14,23 +12,15 @@ import {
 
 const navigation = [
   {
+    key: "overview",
     label: "Overview",
     icon: LayoutDashboard,
     active: true,
   },
   {
+    key: "health",
     label: "My Health",
     icon: HeartPulse,
-    active: false,
-  },
-  {
-    label: "Appointments",
-    icon: CalendarDays,
-    active: false,
-  },
-  {
-    label: "Medical Records",
-    icon: FileText,
     active: false,
   },
 ];
@@ -47,10 +37,16 @@ const secondaryNavigation = [
 ];
 
 interface PatientSidebarProps {
-  onAiClick: () => void;
+  patientName?: string;
+  activeTab?: string;
+  onTabChange?: (key: string) => void;
 }
 
-export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
+export default function PatientSidebar({
+  patientName,
+  activeTab,
+  onTabChange,
+}: PatientSidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[245px] border-r border-[#e1e7e4] bg-[#f8faf9] px-5 py-6 lg:flex lg:flex-col">
       {/* Logo */}
@@ -83,7 +79,7 @@ export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
 
           <div className="min-w-0">
             <p className="truncate text-[11px] font-medium">
-              Vedant Gupta
+              {patientName || "Patient"}
             </p>
 
             <p className="mt-0.5 text-[8px] text-[#929d99]">
@@ -104,12 +100,14 @@ export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
         <nav className="space-y-1">
           {navigation.map((item) => {
             const Icon = item.icon;
+            const isActive = activeTab === item.key;
 
             return (
               <button
                 key={item.label}
+                onClick={() => onTabChange?.(item.key)}
                 className={`flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-left transition ${
-                  item.active
+                  isActive
                     ? "bg-[#17221f] text-white shadow-[0_8px_20px_rgba(23,34,31,0.12)]"
                     : "text-[#71807a] hover:bg-[#edf2ef] hover:text-[#17221f]"
                 }`}
@@ -138,11 +136,6 @@ export default function PatientSidebar({ onAiClick }: PatientSidebarProps) {
             return (
               <button
                 key={item.label}
-                onClick={() => {
-                  if (item.label === "TLUX") {
-                    onAiClick();
-                  }
-                }}
                 className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-[#71807a] transition hover:bg-[#edf2ef] hover:text-[#17221f]"
               >
                 <Icon size={15} strokeWidth={1.8} />

@@ -1,17 +1,81 @@
 "use client";
 
 import { Search, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
 
-export default function PatientTopBar() {
+function getISTDate(): string {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const parts = formatter.formatToParts(now);
+  const weekday = parts.find((p) => p.type === "weekday")?.value || "";
+  const day = parts.find((p) => p.type === "day")?.value || "";
+  const month = parts.find((p) => p.type === "month")?.value || "";
+  const year = parts.find((p) => p.type === "year")?.value || "";
+  return `${weekday} · ${day} ${month} ${year}`;
+}
+
+function getISTGreeting(): string {
+  const now = new Date();
+  const hourString = new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour: "numeric",
+    hour12: false,
+  }).format(now);
+  const hour = parseInt(hourString, 10);
+
+  if (hour >= 4 && hour < 12) {
+    return "Good morning";
+  } else if (hour >= 12 && hour < 17) {
+    return "Good afternoon";
+  } else {
+    return "Good evening";
+  }
+}
+
+function getInitials(name?: string): string {
+  if (!name) return "PT";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "PT";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+interface PatientTopBarProps {
+  patientName?: string;
+}
+
+export default function PatientTopBar({ patientName }: PatientTopBarProps) {
+  const [dateStr, setDateStr] = useState<string>("");
+  const [greeting, setGreeting] = useState<string>("Good day");
+
+  useEffect(() => {
+    const update = () => {
+      setDateStr(getISTDate());
+      setGreeting(getISTGreeting());
+    };
+    update();
+    const interval = setInterval(update, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const firstName = patientName ? patientName.trim().split(/\s+/)[0] : "";
+  const displayGreeting = firstName ? `${greeting}, ${firstName}.` : `${greeting}.`;
+
   return (
     <header className="flex h-[78px] items-center justify-between border-b border-[#e1e7e4] bg-[#f7f9f8]/90 px-6 backdrop-blur-xl md:px-9">
       <div>
         <p className="text-[8px] uppercase tracking-[0.25em] text-[#9aa5a1]">
-          Tuesday · 09 September 2026
+          {dateStr || "Today · IST"}
         </p>
 
         <h2 className="mt-1 text-[13px] font-medium tracking-[-0.01em]">
-          Good evening, Vedant.
+          {displayGreeting}
         </h2>
       </div>
 
@@ -38,7 +102,7 @@ export default function PatientTopBar() {
 
         {/* Avatar */}
         <button className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-[#17221f] text-[9px] font-medium text-white">
-          VG
+          {getInitials(patientName)}
         </button>
       </div>
     </header>

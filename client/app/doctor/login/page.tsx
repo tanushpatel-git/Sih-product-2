@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { DOCTOR_STORAGE_KEY, DOCTOR_ACCOUNTS_KEY, FALLBACK_DOCTOR } from "../doctorAuth";
 import {
   Activity,
   ArrowRight,
@@ -18,18 +19,61 @@ import {
 export function DoctorLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(DOCTOR_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { email?: string };
+          if (parsed?.email) return parsed.email;
+        }
+      } catch {}
+    }
+    return "";
+  });
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log({
-      email,
-      password,
-      remember,
-    });
+    if (typeof window !== "undefined") {
+      try {
+        const accountsRaw = localStorage.getItem(DOCTOR_ACCOUNTS_KEY);
+        const accounts = accountsRaw ? JSON.parse(accountsRaw) : {};
+        const matched = accounts[email.toLowerCase().trim()];
+        if (matched) {
+          localStorage.setItem(DOCTOR_STORAGE_KEY, JSON.stringify(matched));
+        } else {
+          // If no specific prior registration matched this email, check current doctor or derive
+          const existingRaw = localStorage.getItem(DOCTOR_STORAGE_KEY);
+          if (existingRaw) {
+            const existing = JSON.parse(existingRaw);
+            if (existing && existing.name) {
+              existing.email = email || existing.email;
+              localStorage.setItem(DOCTOR_STORAGE_KEY, JSON.stringify(existing));
+            }
+          } else {
+            const nameFromEmail = email.includes("@")
+              ? email.split("@")[0].replace(/[._]/g, " ")
+              : "Doctor";
+            const capitalized = nameFromEmail
+              .split(" ")
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(" ");
+            const newDoc = {
+              name: capitalized || FALLBACK_DOCTOR.name,
+              email: email || FALLBACK_DOCTOR.email,
+              specialty: "General Medicine",
+              licenseNumber: "LIC-IN-" + Math.floor(100000 + Math.random() * 900000),
+            };
+            localStorage.setItem(DOCTOR_STORAGE_KEY, JSON.stringify(newDoc));
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
 
     // Redirect to doctor dashboard
     router.push("/doctor/dashboard");

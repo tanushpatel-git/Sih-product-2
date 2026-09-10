@@ -1,9 +1,8 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Activity, HeartPulse, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, HeartPulse } from "lucide-react";
 import { useState } from "react";
-import Image from "next/image";
 
 const hotspots = [
   {
@@ -130,6 +129,7 @@ export default function ClinicalCore() {
           y: moveY,
           rotateX,
           rotateY,
+          transformStyle: "preserve-3d",
         }}
         className="absolute right-[12%] top-[3%] h-[340px] w-[330px]"
       >
@@ -170,6 +170,7 @@ export default function ClinicalCore() {
           }}
           className="absolute inset-0"
           style={{
+            transform: "translateZ(0)",
             transformStyle: "preserve-3d",
           }}
         >
