@@ -10,6 +10,7 @@
     "dev:web": "npm run dev --workspace @medchat/web",
     "dev:api": "npm run dev --workspace @medchat/api",
     "dev:ai": "cd services/ai && source venv/bin/activate && uvicorn app.main:app --reload --port 8000",
+    "dev:ml": "cd services/ml && source venv/bin/activate && uvicorn app.main:app --reload --port 8001",
     "build:web": "npm run build --workspace @medchat/web",
     "db:seed": "cd database && node seeds/seed.js"
   }

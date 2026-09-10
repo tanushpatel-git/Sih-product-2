@@ -2,9 +2,7 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -24,41 +22,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(getStoredUser());
   const router = useRouter();
 
-  const login = useCallback(
-    async (email: string, password: string) => {
-      const res = await api.login(email, password);
-      setToken(res.token);
-      setStoredUser(res.user);
-      setUser(res.user);
-      router.push("/dashboard");
-    },
-    [router]
-  );
+  const login = async (email: string, password: string) => {
+    const res = await api.login(email, password);
+    setToken(res.token);
+    setStoredUser(res.user);
+    setUser(res.user);
 
-  const register = useCallback(
-    async (payload: Parameters<typeof api.register>[0]) => {
-      const res = await api.register(payload);
-      setToken(res.token);
-      setStoredUser(res.user);
-      setUser(res.user);
-      router.push("/dashboard");
-    },
-    [router]
-  );
+    if (res.user.role === "DOCTOR") {
+      router.push("/doctor/dashboard");
+    } else {
+      router.push("/patient/dashboard");
+    }
+  };
 
-  const logout = useCallback(() => {
+  const register = async (payload: Parameters<typeof api.register>[0]) => {
+    const res = await api.register(payload);
+    setToken(res.token);
+    setStoredUser(res.user);
+    setUser(res.user);
+
+    if (payload.role === "DOCTOR") {
+      router.push("/doctor/dashboard");
+    } else {
+      router.push("/patient/dashboard");
+    }
+  };
+
+  const logout = () => {
     setToken(null);
     setStoredUser(null);
     setUser(null);
     router.push("/");
-  }, [router]);
+  };
 
-  const value = useMemo(
-    () => ({ user, login, register, logout }),
-    [user, login, register, logout]
+  return (
+    <AuthContext.Provider value={{ user, login, register, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {
