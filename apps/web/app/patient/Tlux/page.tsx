@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -132,6 +133,7 @@ function uniqueLocalId(): string {
 }
 
 export default function Page() {
+  const router = useRouter();
   const [view, setView] = useState<View>("consultations");
   const [selectedSpecialty, setSelectedSpecialty] = useState("Cardiology");
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
@@ -439,7 +441,7 @@ export default function Page() {
         >
           <div className="mb-8 flex items-center justify-between px-2">
             <button
-              onClick={() => setView("consultations")}
+              onClick={() => router.push("/")}
               className="flex items-center gap-3"
             >
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#171918] text-white">
@@ -566,15 +568,13 @@ export default function Page() {
                 <MessageCircle size={17} />
               </button>
 
-              {view !== "consultations" && (
-                <button
-                  onClick={goBack}
-                  className="hidden items-center gap-2 rounded-xl border border-[#e0e6e2] bg-white px-3 py-2 text-xs font-medium text-[#69726e] sm:flex"
-                >
-                  <ArrowLeft size={14} />
-                  Back
-                </button>
-              )}
+              <button
+                onClick={() => router.push("/patient/dashboard")}
+                className="flex items-center gap-2 rounded-xl border border-[#e0e6e2] bg-white px-3 py-2 text-xs font-medium text-[#69726e]"
+              >
+                <ArrowLeft size={14} />
+                Back
+              </button>
 
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.17em] text-[#89928d]">

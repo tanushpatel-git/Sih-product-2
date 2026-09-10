@@ -56,7 +56,7 @@ export default function DoctorSidebar({
       {/* Logo */}
       <div className="flex h-[82px] items-center justify-between border-b border-black/[0.06] px-6">
         <button
-          onClick={() => onSelectTab?.("ai-config")}
+          onClick={() => router.push("/")}
           className="flex items-center gap-3 text-left"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white">

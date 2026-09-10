@@ -85,19 +85,24 @@ export function DoctorRegisterPage() {
                 <ArrowLeft size={17} />
               </button>
 
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white">
-                <Activity size={17} />
-              </div>
+              <button
+                onClick={() => router.push("/")}
+                className="flex items-center gap-3"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white">
+                  <Activity size={17} />
+                </div>
 
-              <div>
-                <p className="text-[13px] font-semibold tracking-[0.18em]">
-                  VITAWEAVE
-                </p>
+                <div>
+                  <p className="text-[13px] font-semibold tracking-[0.18em]">
+                    VITAWEAVE
+                  </p>
 
-                <p className="text-[10px] uppercase tracking-[0.16em] text-black/40">
-                  Healthcare Intelligence
-                </p>
-              </div>
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-black/40">
+                    Healthcare Intelligence
+                  </p>
+                </div>
+              </button>
             </div>
 
             {/* Main */}

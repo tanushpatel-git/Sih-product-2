@@ -48,7 +48,10 @@ export default function PatientSidebar({
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[245px] border-r border-[#e1e7e4] bg-[#f8faf9] px-5 py-6 lg:flex lg:flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-2">
+      <button
+        onClick={() => router.push("/")}
+        className="flex items-center gap-3 px-2"
+      >
         <div className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-[#17221f]">
           <Activity
             size={17}
@@ -66,7 +69,7 @@ export default function PatientSidebar({
             Health Intelligence
           </p>
         </div>
-      </div>
+      </button>
 
       {/* Profile */}
       <div className="mt-9 rounded-[18px] border border-[#e2e8e5] bg-white px-3 py-3">

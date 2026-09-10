@@ -68,18 +68,23 @@ export function LoginPage() {
               <ArrowLeft size={18} />
             </button>
 
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white shadow-sm">
-              <Activity size={18} strokeWidth={2.2} />
-            </div>
+            <button
+              onClick={() => router.push("/")}
+              className="flex items-center gap-3"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#17201d] text-white shadow-sm">
+                <Activity size={18} strokeWidth={2.2} />
+              </div>
 
-            <div>
-              <div className="text-[15px] font-semibold tracking-[-0.02em]">
-                VITAWEAVE
+              <div>
+                <div className="text-[15px] font-semibold tracking-[-0.02em]">
+                  VITAWEAVE
+                </div>
+                <div className="hidden text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581] sm:block">
+                  Healthcare Intelligence
+                </div>
               </div>
-              <div className="hidden text-[8px] font-medium uppercase tracking-[0.22em] text-[#7a8581] sm:block">
-                Healthcare Intelligence
-              </div>
-            </div>
+            </button>
           </div>
 
           <div className="flex items-center gap-2 rounded-full border border-[#dfe5e2] bg-white/70 px-3 py-2 backdrop-blur-md">
