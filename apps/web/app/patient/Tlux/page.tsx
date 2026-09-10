@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Activity,
@@ -1140,6 +1140,24 @@ function ChatView({
   onSend: () => void;
   onBack: () => void;
 }) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasScrolled = useRef(false);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (!hasScrolled.current) {
+      scrollToBottom();
+      hasScrolled.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
   return (
     <motion.div
       key="chat"
@@ -1282,6 +1300,7 @@ function ChatView({
                   );
                 })
                 )}
+                <div ref={messagesEndRef} />
               </div>
             </div>
           </div>
