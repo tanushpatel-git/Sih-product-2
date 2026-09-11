@@ -159,6 +159,20 @@ const hospitalCapacitySnapshotSchema = new Schema(
 );
 hospitalCapacitySnapshotSchema.index({ hospital_id: 1, observed_at: -1 }, { unique: true });
 
+const appointmentSchema = new Schema(
+  {
+    patient_id: { type: Schema.Types.ObjectId, ref: "Patient", required: true },
+    hospital_id: { type: Schema.Types.ObjectId, ref: "Hospital", required: true },
+    scheduled_for: { type: Date, required: true },
+    department: { type: String, default: "General Medicine" },
+    reason: { type: String, default: null },
+    status: { type: String, enum: ["requested", "confirmed", "completed", "cancelled"], default: "requested" },
+  },
+  { timestamps: true }
+);
+appointmentSchema.index({ hospital_id: 1, scheduled_for: 1 });
+appointmentSchema.index({ patient_id: 1, scheduled_for: -1 });
+
 const consultationSchema = new Schema(
   {
     patient_id: { type: Schema.Types.ObjectId, ref: "Patient", required: true },
@@ -286,6 +300,7 @@ module.exports = {
   AuditLog: getModel("AuditLog", auditLogSchema),
   Hospital: getModel("Hospital", hospitalSchema),
   HospitalCapacitySnapshot: getModel("HospitalCapacitySnapshot", hospitalCapacitySnapshotSchema),
+  Appointment: getModel("Appointment", appointmentSchema),
   Consultation: getModel("Consultation", consultationSchema),
   CaseSheet: getModel("CaseSheet", caseSheetSchema),
   Medication: getModel("Medication", medicationSchema),

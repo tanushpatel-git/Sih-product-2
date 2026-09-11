@@ -227,6 +227,26 @@ async function main() {
     });
   }
 
+  // Demo appointment: hospital staff can look up Priya using PAT-1002.
+  const priyaAppointmentTime = new Date(now);
+  priyaAppointmentTime.setUTCDate(priyaAppointmentTime.getUTCDate() + 2);
+  priyaAppointmentTime.setUTCHours(10, 30, 0, 0);
+  await upsertOne(
+    db,
+    "appointments",
+    { patient_id: pat2._id, hospital_id: cityGeneral._id, scheduled_for: priyaAppointmentTime },
+    {
+      patient_id: pat2._id,
+      hospital_id: cityGeneral._id,
+      scheduled_for: priyaAppointmentTime,
+      department: "Endocrinology",
+      reason: "Diabetes follow-up and medication review",
+      status: "confirmed",
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+
   // Fourteen daily observations make the ML model's trend features meaningful.
   // The final row exactly matches the dashboard's default test scenario.
   const cityHistory = [

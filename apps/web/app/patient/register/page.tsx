@@ -30,6 +30,16 @@ export function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    abhaId: "",
+    dob: "",
+    sex: "",
+    bloodType: "",
+    contactPhone: "",
+    emergencyName: "",
+    emergencyPhone: "",
+    emergencyRelation: "",
+    knownAllergies: "",
+    chronicConditions: "",
   });
 
   const updateField = (
@@ -58,6 +68,18 @@ export function RegisterPage() {
         password: form.password,
         fullName: form.fullName,
         role: "PATIENT",
+        abha_id: form.abhaId,
+        dob: form.dob,
+        sex: form.sex,
+        blood_type: form.bloodType,
+        contact_phone: form.contactPhone,
+        emergency_contact: {
+          name: form.emergencyName,
+          phone: form.emergencyPhone,
+          relation: form.emergencyRelation,
+        },
+        known_allergies: form.knownAllergies.split(",").map((item) => item.trim()).filter(Boolean),
+        chronic_conditions: form.chronicConditions.split(",").map((item) => item.trim()).filter(Boolean),
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Registration failed. Please try again.";
@@ -260,8 +282,8 @@ export function RegisterPage() {
                   </h2>
 
                   <p className="mt-2 text-sm leading-6 text-[#7b8581]">
-                    Start with the basics. You can complete your clinical
-                    profile later.
+                    Complete your profile once so your care team has the
+                    right information from day one.
                   </p>
                 </div>
 
@@ -367,6 +389,47 @@ export function RegisterPage() {
                         "
                       />
                     </div>
+                  </div>
+
+                  <div className="border-t border-[#e8ecea] pt-5">
+                    <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Health identity</p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="abhaId" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">ABHA ID <span className="normal-case text-[#9aa49f]">(optional)</span></label>
+                        <input id="abhaId" value={form.abhaId} onChange={(event) => updateField("abhaId", event.target.value)} placeholder="91-8472-9012-4411" className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" />
+                      </div>
+                      <div>
+                        <label htmlFor="dob" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Date of birth</label>
+                        <input id="dob" type="date" value={form.dob} onChange={(event) => updateField("dob", event.target.value)} required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" />
+                      </div>
+                      <div>
+                        <label htmlFor="sex" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Sex</label>
+                        <select id="sex" value={form.sex} onChange={(event) => updateField("sex", event.target.value)} required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white"><option value="">Select</option><option value="M">Male</option><option value="F">Female</option><option value="O">Other</option></select>
+                      </div>
+                      <div>
+                        <label htmlFor="bloodType" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Blood type</label>
+                        <select id="bloodType" value={form.bloodType} onChange={(event) => updateField("bloodType", event.target.value)} required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white"><option value="">Select</option>{["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => <option key={type} value={type}>{type}</option>)}</select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[#e8ecea] pt-5">
+                    <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Contact & emergency contact</p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="sm:col-span-2"><label htmlFor="contactPhone" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Phone number</label><input id="contactPhone" type="tel" value={form.contactPhone} onChange={(event) => updateField("contactPhone", event.target.value)} placeholder="+91 98201 44521" required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" /></div>
+                      <div><label htmlFor="emergencyName" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Emergency contact name</label><input id="emergencyName" value={form.emergencyName} onChange={(event) => updateField("emergencyName", event.target.value)} required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" /></div>
+                      <div><label htmlFor="emergencyPhone" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Emergency phone</label><input id="emergencyPhone" type="tel" value={form.emergencyPhone} onChange={(event) => updateField("emergencyPhone", event.target.value)} required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" /></div>
+                      <div className="sm:col-span-2"><label htmlFor="emergencyRelation" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Relationship</label><input id="emergencyRelation" value={form.emergencyRelation} onChange={(event) => updateField("emergencyRelation", event.target.value)} placeholder="Parent, spouse, sibling…" required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" /></div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-[#e8ecea] pt-5">
+                    <p className="mb-4 text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Medical information</p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div><label htmlFor="knownAllergies" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Known allergies</label><input id="knownAllergies" value={form.knownAllergies} onChange={(event) => updateField("knownAllergies", event.target.value)} placeholder="Penicillin, pollen, or None" required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" /></div>
+                      <div><label htmlFor="chronicConditions" className="mb-2 block text-[9px] font-semibold uppercase tracking-[0.18em] text-[#69736f]">Chronic conditions</label><input id="chronicConditions" value={form.chronicConditions} onChange={(event) => updateField("chronicConditions", event.target.value)} placeholder="Diabetes, asthma, or None" required className="h-12 w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] px-4 text-sm outline-none focus:border-[#aab5b0] focus:bg-white" /></div>
+                    </div>
+                    <p className="mt-2 text-[10px] text-[#8a9590]">Separate multiple items with commas.</p>
                   </div>
 
                   {/* Password */}

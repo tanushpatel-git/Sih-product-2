@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useAuth } from "../../../lib/auth";
 import {
   Activity,
   ArrowRight,
@@ -18,22 +19,22 @@ import {
 
 export function HospitalLoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    console.log({
-      email,
-      password,
-      remember,
-    });
-
-    // Redirect to hospital dashboard (or create one if needed)
-    router.push("/hospital/dashboard");
+    setError(""); setLoading(true);
+    try {
+      await login(email, password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to sign in.");
+    } finally { setLoading(false); }
   };
 
   return (
@@ -238,6 +239,7 @@ export function HospitalLoginPage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-600">{error}</div>}
                   {/* Email */}
                   <div>
                     <label
@@ -343,9 +345,10 @@ export function HospitalLoginPage() {
                   {/* Submit */}
                   <button
                     type="submit"
+                    disabled={loading}
                     className="group relative mt-2 flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-[#17201d] text-sm font-medium text-white shadow-[0_12px_30px_rgba(23,32,29,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#26332e] hover:shadow-[0_18px_40px_rgba(23,32,29,0.2)] active:translate-y-0"
                   >
-                    <span>Enter hospital workspace</span>
+                    <span>{loading ? "Signing in…" : "Enter hospital workspace"}</span>
 
                     <ArrowRight
                       size={16}

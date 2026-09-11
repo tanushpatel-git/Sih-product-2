@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const { config } = require("./config");
 const { errorHandler, logRequest } = require("./middleware/error");
@@ -9,12 +10,14 @@ const documentsRoutes = require("./routes/documents.routes");
 const aiConfigRoutes = require("./routes/aiConfig.routes");
 const adminRoutes = require("./routes/admin.routes");
 const caseHistoryRoutes = require("./routes/caseHistory.routes");
+const appointmentsRoutes = require("./routes/appointments.routes");
 const { connectDb, createIndexes } = require("./db");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use((req, res, next) => {
   const start = Date.now();
   logRequest(req, res, start);
@@ -32,6 +35,7 @@ app.use("/api/documents", documentsRoutes);
 app.use("/api/ai-config", aiConfigRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/case-history", caseHistoryRoutes);
+app.use("/api/appointments", appointmentsRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found" });

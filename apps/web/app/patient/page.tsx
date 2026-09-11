@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import HumanBody3D, { OrganNode } from "./HumanBody3D";
 import HealthSummaryDoc, { HealthProfileData } from "./HealthSummaryDoc";
+import { api } from "../../lib/api";
 
 export default function PatientDashboardPage() {
   // Navigation active tab
@@ -1380,9 +1381,21 @@ export default function PatientDashboardPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => {
-                      alert("Appointment request submitted successfully.");
-                      setActiveModal(null);
+                    onClick={async () => {
+                      try {
+                        const scheduledFor = new Date();
+                        scheduledFor.setDate(scheduledFor.getDate() + 7);
+                        scheduledFor.setHours(10, 30, 0, 0);
+                        await api.createAppointment({
+                          scheduled_for: scheduledFor.toISOString(),
+                          department: "General Medicine / Preventive Cardiology",
+                          reason: "Follow-up consultation",
+                        });
+                        alert("Appointment request submitted successfully.");
+                        setActiveModal(null);
+                      } catch (err) {
+                        alert(err instanceof Error ? err.message : "Could not submit the appointment request.");
+                      }
                     }}
                     className="w-full py-2 bg-sky-600 text-white rounded-xl font-bold hover:bg-sky-700 transition"
                   >

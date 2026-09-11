@@ -79,17 +79,66 @@ async function register(req, res) {
     const authUser = toAuthUser({ id: user._id, email: user.email, role: user.role, full_name: user.full_name, doctor_id: doctor._id });
     res.status(201).json({ token: signToken(authUser), user: authUser });
   } else {
-    const { dob, sex, bloodType } = req.body;
+    const {
+      abha_id, dob, sex, blood_type, bloodType, contact_phone,
+      emergency_contact, known_allergies, chronic_conditions,
+    } = req.body;
+    if (!dob || !sex || !blood_type || !contact_phone || !emergency_contact?.name || !emergency_contact?.phone || !emergency_contact?.relation || !Array.isArray(known_allergies) || !Array.isArray(chronic_conditions)) {
+      throw new AppError("Complete all required patient profile and emergency contact fields", 400);
+    }
+    const asStringArray = (value) => Array.isArray(value)
+      ? value.map((item) => String(item).trim()).filter(Boolean)
+      : [];
     const patient = await Patient.create({
       user_id: user._id,
-      dob: dob || null,
-      sex: sex || null,
-      blood_type: bloodType || null,
+      // Patient-facing IDs are issued by the server so they cannot collide.
+      custom_id: `PAT-${String(user._id).slice(-6).toUpperCase()}`,
+      abha_id: abha_id?.trim() || null,
+      dob,
+      sex,
+      blood_type: blood_type || bloodType,
+      contact_phone: contact_phone.trim(),
+      emergency_contact: {
+        name: emergency_contact.name.trim(),
+        phone: emergency_contact.phone.trim(),
+        relation: emergency_contact.relation.trim(),
+      },
+      known_allergies: asStringArray(known_allergies),
+      chronic_conditions: asStringArray(chronic_conditions),
     });
     await AuditLog.create({ user_id: user._id, action: "REGISTER", entity: "PATIENT", entity_id: String(patient._id) });
     const authUser = toAuthUser({ id: user._id, email: user.email, role: user.role, full_name: user.full_name, patient_id: patient._id });
-    res.status(201).json({ token: signToken(authUser), user: authUser });
+    res.status(201).json({ token: signToken(authUser), user: authUser, patient });
   }
+}
+
+async function updateMyPatientProfile(req, res) {
+  const patient = await Patient.findOne({ user_id: req.user.id });
+  if (!patient) throw new AppError("Patient profile not found", 404);
+
+  const { abha_id, dob, sex, blood_type, contact_phone, emergency_contact, known_allergies, chronic_conditions } = req.body;
+  const asStringArray = (value) => Array.isArray(value)
+    ? value.map((item) => String(item).trim()).filter(Boolean)
+    : undefined;
+
+  if (abha_id !== undefined) patient.abha_id = abha_id?.trim() || null;
+  if (dob !== undefined) patient.dob = dob || null;
+  if (sex !== undefined) patient.sex = sex || null;
+  if (blood_type !== undefined) patient.blood_type = blood_type || null;
+  if (contact_phone !== undefined) patient.contact_phone = contact_phone?.trim() || null;
+  if (emergency_contact !== undefined) {
+    patient.emergency_contact = {
+      name: emergency_contact?.name?.trim() || null,
+      phone: emergency_contact?.phone?.trim() || null,
+      relation: emergency_contact?.relation?.trim() || null,
+    };
+  }
+  const allergies = asStringArray(known_allergies);
+  const conditions = asStringArray(chronic_conditions);
+  if (allergies !== undefined) patient.known_allergies = allergies;
+  if (conditions !== undefined) patient.chronic_conditions = conditions;
+  await patient.save();
+  res.json({ patient });
 }
 
 async function login(req, res) {
@@ -144,4 +193,4 @@ async function me(req, res) {
   });
 }
 
-module.exports = { register, login, me };
+module.exports = { register, login, me, updateMyPatientProfile };

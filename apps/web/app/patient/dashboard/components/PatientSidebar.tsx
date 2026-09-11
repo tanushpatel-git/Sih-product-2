@@ -9,6 +9,8 @@ import {
   UserRound,
   LayoutDashboard,
   LogOut,
+  Settings,
+  FileText,
 } from "lucide-react";
 
 const navigation = [
@@ -29,6 +31,16 @@ const secondaryNavigation = [
     key: "tlux",
     label: "TLUX",
     icon: Sparkles,
+  },
+  {
+    key: "settings",
+    label: "Settings",
+    icon: Settings,
+  },
+  {
+    key: "history",
+    label: "My History",
+    icon: FileText,
   },
 ];
 
@@ -140,6 +152,10 @@ export default function PatientSidebar({
                 onClick={() => {
                   if (item.key === "tlux") {
                     router.push("/patient/Tlux");
+                  } else if (item.key === "settings") {
+                    router.push("/patient/settings");
+                  } else if (item.key === "history") {
+                    router.push("/patient/history");
                   }
                 }}
                 className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-[#71807a] transition hover:bg-[#edf2ef] hover:text-[#17221f]"

@@ -145,6 +145,14 @@ export const api = {
     role: "DOCTOR" | "PATIENT";
     specialty?: string;
     licenseNo?: string;
+    abha_id?: string;
+    dob?: string;
+    sex?: string;
+    blood_type?: string;
+    contact_phone?: string;
+    emergency_contact?: { name: string; phone: string; relation: string };
+    known_allergies?: string[];
+    chronic_conditions?: string[];
   }) =>
     request<{ token: string; user: AuthUser }>("/api/auth/register", {
       method: "POST",
@@ -167,6 +175,48 @@ export const api = {
     }, false),
 
   me: () => request<{ user: AuthUser }>("/api/auth/me"),
+
+  updateMyPatientProfile: (payload: {
+    abha_id?: string;
+    dob?: string;
+    sex?: string;
+    blood_type?: string;
+    contact_phone?: string;
+    emergency_contact?: { name: string; phone: string; relation: string };
+    known_allergies?: string[];
+    chronic_conditions?: string[];
+  }) => request<{ patient: PatientProfile }>("/api/auth/patient-profile", {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  }),
+
+  getHospitalPatientAppointments: (patientId: string) =>
+    request<{ patient: PatientProfile; appointments: HospitalAppointment[] }>(
+      `/api/appointments/hospital/patient/${encodeURIComponent(patientId)}`
+    ),
+
+  uploadHospitalPatientReport: (patientId: string, file: File, payload: { title: string; type: string; summary?: string }) => {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("title", payload.title);
+    body.append("type", payload.type);
+    if (payload.summary) body.append("summary", payload.summary);
+    return request<{ report: Record<string, unknown> }>(`/api/appointments/hospital/patient/${encodeURIComponent(patientId)}/report`, { method: "POST", body });
+  },
+
+  createAppointment: (payload: { scheduled_for: string; department?: string; reason?: string; hospital_id?: string }) =>
+    request<{ appointment: HospitalAppointment }>("/api/appointments", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  uploadMyPrescription: (file: File, title: string, summary?: string) => {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("title", title);
+    if (summary) body.append("summary", summary);
+    return request<{ report: Record<string, unknown> }>("/api/appointments/patient/prescriptions", { method: "POST", body });
+  },
 
   listDoctors: () => request<{ doctors: Doctor[] }>("/api/doctors"),
 
@@ -310,6 +360,7 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 
+
   getEmergencyDataset: (id: string, reason?: string) =>
     request<EmergencyDataset>(
       `/api/case-history/patients/${id}/emergency${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`
@@ -363,6 +414,14 @@ export interface PatientProfile {
   known_allergies: string[];
   chronic_conditions: string[];
   createdAt?: string;
+}
+
+export interface HospitalAppointment {
+  _id: string;
+  scheduled_for: string;
+  department: string;
+  reason: string | null;
+  status: "requested" | "confirmed" | "completed" | "cancelled";
 }
 
 export interface CaseSheet {

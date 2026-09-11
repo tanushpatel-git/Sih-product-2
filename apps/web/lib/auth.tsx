@@ -30,6 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (res.user.role === "DOCTOR") {
       router.push("/doctor/dashboard");
+    } else if (res.user.role === "HOSPITAL") {
+      router.push("/hospital/dashboard");
     } else {
       router.push("/patient/dashboard");
     }

@@ -16,7 +16,6 @@ import {
   AlertCircle,
   Plus,
   Trash2,
-  Upload,
   Search,
   User,
   Heart,
@@ -119,17 +118,11 @@ export default function SmartCaseHistoryView() {
   const [saveSuccessMessage, setSaveSuccessMessage] = useState("");
   const [allergyAlerts, setAllergyAlerts] = useState<Array<{ medication: string; allergy: string; severity: string; message: string }>>([]);
 
-  // Modals: Emergency Access & Reports Upload & ABHA card
+  // Modals: Emergency Access & ABHA card
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [emergencyData, setEmergencyData] = useState<EmergencyDataset | null>(null);
   const [loadingEmergency, setLoadingEmergency] = useState(false);
 
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reportType, setReportType] = useState("ECG");
-  const [reportTitle, setReportTitle] = useState("");
-  const [reportSummary, setReportSummary] = useState("");
-  const [reportFinding, setReportFinding] = useState("");
-  const [uploadingReport, setUploadingReport] = useState(false);
 
   const [showAbhaModal, setShowAbhaModal] = useState(false);
   const [linkingAbha, setLinkingAbha] = useState(false);
@@ -555,37 +548,6 @@ export default function SmartCaseHistoryView() {
       setLoadingEmergency(false);
     }
   };
-
-  // ── Reports Upload ────────────────────────────────────────────────────────
-  const handleUploadReport = async () => {
-    if (!selectedPatient || !reportTitle.trim()) {
-      alert("Please provide a report title");
-      return;
-    }
-    setUploadingReport(true);
-    try {
-      await api.uploadPatientReport({
-        patient_id: selectedPatient.id,
-        type: reportType,
-        title: reportTitle.trim(),
-        summary: reportSummary.trim() || undefined,
-        flagged_findings: reportFinding.trim() ? [reportFinding.trim()] : [],
-        date: new Date().toISOString(),
-      });
-      setShowReportModal(false);
-      setReportTitle("");
-      setReportSummary("");
-      setReportFinding("");
-      // Refresh timeline
-      const freshTimeline = await api.getPatientTimeline(selectedPatient.id);
-      setTimeline(freshTimeline.timeline);
-    } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to upload report");
-    } finally {
-      setUploadingReport(false);
-    }
-  };
-
   // ── ABHA Linking ──────────────────────────────────────────────────────────
   const handleLinkAbha = async () => {
     if (!selectedPatient) return;
@@ -817,13 +779,6 @@ export default function SmartCaseHistoryView() {
                     <span>Emergency Mode</span>
                   </button>
 
-                  <button
-                    onClick={() => setShowReportModal(true)}
-                    className="flex items-center gap-1.5 rounded-xl border border-[#d8e0dc] bg-white px-3 py-2.5 text-xs font-medium text-[#3b4843] transition hover:bg-[#f5f8f6]"
-                  >
-                    <Upload size={14} />
-                    <span>Upload Report</span>
-                  </button>
                 </div>
               </div>
             </div>
@@ -1438,6 +1393,26 @@ export default function SmartCaseHistoryView() {
                         </div>
                       )}
 
+                    {event.eventType === "MEDICATION_REGIMEN" && event.medications && event.medications.length > 0 && (
+                      <div className="mt-2.5 space-y-2">
+                        {event.medications.map((medication) => (
+                          <div
+                            key={medication.id}
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#d6e0db] bg-white px-3 py-2 text-xs"
+                          >
+                            <div>
+                              <span className="font-semibold text-[#263b33]">💊 {medication.name}</span>
+                              <span className="ml-2 text-[#66766f]">{medication.dosage}</span>
+                              {medication.duration && <span className="ml-2 text-[#89958f]">· {medication.duration}</span>}
+                            </div>
+                            <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase ${medication.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                              {medication.active ? "Active" : "Past"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {/* Expanded Drawer: Full Consultation & Audit Trail */}
                     {isExpanded && (
                       <div className="mt-4 border-t border-[#e2e8e5] pt-3 text-xs space-y-3">
@@ -1676,92 +1651,7 @@ export default function SmartCaseHistoryView() {
         </div>
       )}
 
-      {/* ── MODAL 3: MEDICAL REPORT UPLOAD ── */}
-      {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-[#dfe5e2] bg-white p-6 shadow-2xl">
-            <h3 className="text-base font-semibold text-[#17201d]">Upload Diagnostic Report</h3>
-            <p className="text-xs text-[#73807b] mt-0.5">Attach ECG, MRI, Blood or Lab documents to EHR</p>
-
-            <div className="mt-4 space-y-3 text-xs">
-              <div>
-                <label className="block text-[10px] font-semibold uppercase text-[#69736f] mb-1">
-                  Report Modality
-                </label>
-                <select
-                  value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
-                  className="w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] p-2.5 outline-none focus:border-[#7ca89b]"
-                >
-                  <option value="ECG">12-Lead Electrocardiogram (ECG)</option>
-                  <option value="Blood">Comprehensive Blood / Metabolic Panel</option>
-                  <option value="MRI">Magnetic Resonance Imaging (MRI)</option>
-                  <option value="CT">Computed Tomography (CT Scan)</option>
-                  <option value="X-Ray">Chest / Skeletal X-Ray</option>
-                  <option value="Other">Other Diagnostic Study</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-semibold uppercase text-[#69736f] mb-1">
-                  Report Title
-                </label>
-                <input
-                  type="text"
-                  value={reportTitle}
-                  onChange={(e) => setReportTitle(e.target.value)}
-                  placeholder="e.g. 12-Lead ECG Resting"
-                  className="w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] p-2.5 outline-none focus:border-[#7ca89b]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-semibold uppercase text-[#69736f] mb-1">
-                  Clinical Summary & Interpretation
-                </label>
-                <textarea
-                  rows={3}
-                  value={reportSummary}
-                  onChange={(e) => setReportSummary(e.target.value)}
-                  placeholder="Summary of radiologist or pathologist interpretation..."
-                  className="w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] p-2.5 outline-none focus:border-[#7ca89b]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-semibold uppercase text-[#69736f] mb-1">
-                  Primary Finding / Highlight
-                </label>
-                <input
-                  type="text"
-                  value={reportFinding}
-                  onChange={(e) => setReportFinding(e.target.value)}
-                  placeholder="e.g. Normal sinus rhythm, borderline high cholesterol"
-                  className="w-full rounded-xl border border-[#dfe5e2] bg-[#f9faf9] p-2.5 outline-none focus:border-[#7ca89b]"
-                />
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                onClick={() => setShowReportModal(false)}
-                className="rounded-xl px-4 py-2 text-xs font-medium text-[#6c7974] hover:bg-[#f3f6f5]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUploadReport}
-                disabled={uploadingReport || !reportTitle.trim()}
-                className="rounded-xl bg-[#17201d] px-5 py-2.5 text-xs font-semibold text-white hover:bg-[#2b3a35] disabled:opacity-50"
-              >
-                {uploadingReport ? "Uploading..." : "Save Report"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL 4: ABHA DIGITAL HEALTH CARD VIEW ── */}
+      {/* ── MODAL 3: ABHA DIGITAL HEALTH CARD VIEW ── */}
       {showAbhaModal && selectedPatient && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl border border-[#b2d6c9] bg-gradient-to-br from-[#0c2e24] to-[#174637] p-6 text-white shadow-2xl">

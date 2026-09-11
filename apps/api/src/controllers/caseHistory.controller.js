@@ -436,7 +436,6 @@ async function uploadReport(req, res) {
 
   const patient = await Patient.findById(patient_id);
   if (!patient) throw new AppError("Patient not found", 404);
-
   const report = await Report.create({
     patient_id,
     type: type || "Blood",
