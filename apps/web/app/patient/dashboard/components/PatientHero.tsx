@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowUpRight, Sparkles, Activity, HeartPulse } from "lucide-react";
+import { ArrowUpRight, Sparkles, Activity, HeartPulse, CalendarPlus } from "lucide-react";
 import { useState } from "react";
 
 const hotspots = [
@@ -33,9 +33,10 @@ const hotspots = [
 
 interface PatientHeroProps {
   onViewChange?: (view: "overview" | "clinical") => void;
+  onBookAppointment?: () => void;
 }
 
-export default function PatientHero({ onViewChange }: PatientHeroProps) {
+export default function PatientHero({ onViewChange, onBookAppointment }: PatientHeroProps) {
   const [activeHotspot, setActiveHotspot] = useState("heart-rate");
 
   const mouseX = useMotionValue(0);
@@ -174,6 +175,14 @@ export default function PatientHero({ onViewChange }: PatientHeroProps) {
             <Sparkles size={13} />
 
             Ask TLUX
+          </button>
+
+          <button
+            onClick={onBookAppointment}
+            className="flex items-center gap-2 rounded-[13px] border border-[#cbdad4] bg-white/60 px-5 py-3 text-[10px] text-[#59746b] backdrop-blur-xl transition hover:bg-white"
+          >
+            <CalendarPlus size={13} />
+            Book appointment
           </button>
         </div>
       </div>
