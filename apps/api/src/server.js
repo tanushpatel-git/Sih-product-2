@@ -8,6 +8,7 @@ const conversationsRoutes = require("./routes/conversations.routes");
 const documentsRoutes = require("./routes/documents.routes");
 const aiConfigRoutes = require("./routes/aiConfig.routes");
 const adminRoutes = require("./routes/admin.routes");
+const caseHistoryRoutes = require("./routes/caseHistory.routes");
 const { connectDb, createIndexes } = require("./db");
 
 const app = express();
@@ -30,6 +31,7 @@ app.use("/api/conversations", conversationsRoutes);
 app.use("/api/documents", documentsRoutes);
 app.use("/api/ai-config", aiConfigRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/case-history", caseHistoryRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ error: "Not found" });

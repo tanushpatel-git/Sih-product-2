@@ -126,13 +126,47 @@ async function main() {
     db,
     "patients",
     { user_id: patRohan._id },
-    { user_id: patRohan._id, dob: "1990-05-12", sex: "M", blood_type: "O+", createdAt: now, updatedAt: now }
+    {
+      user_id: patRohan._id,
+      custom_id: "PAT-1001",
+      abha_id: "91-8472-9012-4411",
+      dob: "1990-05-12",
+      sex: "M",
+      blood_type: "O+",
+      contact_phone: "+91 98201 44521",
+      emergency_contact: {
+        name: "Kavita Desai",
+        phone: "+91 98201 99887",
+        relation: "Spouse",
+      },
+      known_allergies: ["Penicillin", "Sulfa drugs"],
+      chronic_conditions: ["Mild Hypertension", "Seasonal Asthma"],
+      createdAt: now,
+      updatedAt: now,
+    }
   );
   const pat2 = await upsertOne(
     db,
     "patients",
     { user_id: patPriya._id },
-    { user_id: patPriya._id, dob: "1995-11-02", sex: "F", blood_type: "A+", createdAt: now, updatedAt: now }
+    {
+      user_id: patPriya._id,
+      custom_id: "PAT-1002",
+      abha_id: "91-2341-7890-5522",
+      dob: "1995-11-02",
+      sex: "F",
+      blood_type: "A+",
+      contact_phone: "+91 97112 33456",
+      emergency_contact: {
+        name: "Arjun Patel",
+        phone: "+91 97112 88990",
+        relation: "Brother",
+      },
+      known_allergies: ["Aspirin / NSAIDs"],
+      chronic_conditions: ["Type 2 Diabetes"],
+      createdAt: now,
+      updatedAt: now,
+    }
   );
 
   // ai_configs
@@ -268,6 +302,142 @@ async function main() {
       version: "1",
       uploaded_by: admin._id,
       status: "active",
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+
+  // Digital Case History Seed Data for Rohan Desai (PAT-1001)
+  const consent1 = await upsertOne(
+    db,
+    "consents",
+    { patient_id: pat1._id, doctor_id: doc1._id },
+    {
+      patient_id: pat1._id,
+      doctor_id: doc1._id,
+      type: "recording",
+      granted_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      ip_address: "127.0.0.1",
+      patient_consent: true,
+      doctor_consent: true,
+      notes: "DPDP Act 2023 compliant consultation recording authorization.",
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+
+  const consult1 = await upsertOne(
+    db,
+    "consultations",
+    { patient_id: pat1._id, doctor_id: doc1._id },
+    {
+      patient_id: pat1._id,
+      doctor_id: doc1._id,
+      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      audio_ref: "consult_audio_sample_rohan.webm",
+      audio_duration: 184,
+      transcript: "Doctor: Good morning Rohan. How have your headaches and BP been? Patient: Namaste doctor, the headache comes in the late afternoon, pulsating on the right temple. Also mild dizziness. Doctor: Let's check BP... it is 138/88. Still slightly elevated. Any allergies we should note? Patient: Yes doctor, severe reaction to Penicillin and Sulfa tablets in childhood. Doctor: Understood. I will adjust your antihypertensive to Telmisartan 40mg and add SOS Paracetamol for the headache. Avoid NSAIDs and any penicillin family antibiotics.",
+      consent_id: consent1._id,
+      status: "finalized",
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+
+  await upsertOne(
+    db,
+    "casesheets",
+    { consultation_id: consult1._id },
+    {
+      consultation_id: consult1._id,
+      patient_id: pat1._id,
+      doctor_id: doc1._id,
+      symptoms: ["Right-sided pulsating temporal headache", "Afternoon dizziness", "Mild fatigue"],
+      previous_diseases_mentioned: ["Stage 1 Essential Hypertension", "Seasonal Asthma"],
+      allergies: ["Penicillin", "Sulfa drugs"],
+      diagnosis: "Stage 1 Essential Hypertension with Episodic Vascular Cephalea",
+      doctors_advice: [
+        "Reduce dietary sodium intake (<2g/day)",
+        "Maintain morning and evening BP log for 14 days",
+        "Adequate sleep hygiene (minimum 7 hours)",
+        "Strictly avoid Penicillin / Sulfa derivative medications",
+      ],
+      follow_up_required: true,
+      follow_up_notes: "Review BP chart in 2 weeks or immediately if systolic exceeds 160.",
+      created_by_ai: true,
+      reviewed_by_doctor: true,
+      reviewed_at: now,
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+
+  // Active Medications
+  await upsertOne(
+    db,
+    "medications",
+    { patient_id: pat1._id, name: "Telmisartan" },
+    {
+      patient_id: pat1._id,
+      consultation_id: consult1._id,
+      doctor_id: doc1._id,
+      name: "Telmisartan",
+      dosage: "40mg - 1 Tab Morning",
+      duration: "Ongoing (30 days)",
+      start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+  await upsertOne(
+    db,
+    "medications",
+    { patient_id: pat1._id, name: "Paracetamol 650mg" },
+    {
+      patient_id: pat1._id,
+      consultation_id: consult1._id,
+      doctor_id: doc1._id,
+      name: "Paracetamol 650mg",
+      dosage: "1 Tab SOS (Max 3/day)",
+      duration: "5 days SOS",
+      start_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      active: true,
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+
+  // Medical Reports
+  await upsertOne(
+    db,
+    "reports",
+    { patient_id: pat1._id, title: "12-Lead Electrocardiogram (ECG)" },
+    {
+      patient_id: pat1._id,
+      type: "ECG",
+      title: "12-Lead Electrocardiogram (ECG)",
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      uploaded_by: drSharma._id,
+      summary: "Normal sinus rhythm at 74 bpm. No ST-elevation or ischemic changes. PR interval 150ms.",
+      flagged_findings: ["Normal Sinus Rhythm", "Mild LV voltage within normal variants"],
+      createdAt: now,
+      updatedAt: now,
+    }
+  );
+  await upsertOne(
+    db,
+    "reports",
+    { patient_id: pat1._id, title: "Comprehensive Lipid & Renal Panel" },
+    {
+      patient_id: pat1._id,
+      type: "Blood",
+      title: "Comprehensive Lipid & Renal Panel",
+      date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      uploaded_by: drSharma._id,
+      summary: "Serum Creatinine 0.9 mg/dL (Normal). Total Cholesterol 210 mg/dL (Borderline High). Triglycerides 165 mg/dL.",
+      flagged_findings: ["Borderline High Total Cholesterol (210 mg/dL)", "Normal eGFR (>90 mL/min)"],
       createdAt: now,
       updatedAt: now,
     }

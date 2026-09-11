@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from .api.routes.query import router as query_router
 from .api.routes.ingest import router as ingest_router
+from .api.routes.extraction import router as extraction_router
+from .api.routes.transcription import router as transcription_router
 from .config import settings
 from .db import get_collection, close_client
 
@@ -31,3 +33,5 @@ async def health():
 
 app.include_router(query_router, prefix="/api", tags=["query"])
 app.include_router(ingest_router, prefix="/api", tags=["ingest"])
+app.include_router(extraction_router, prefix="/api", tags=["extraction"])
+app.include_router(transcription_router, prefix="/api", tags=["transcription"])

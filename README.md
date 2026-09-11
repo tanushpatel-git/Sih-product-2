@@ -62,7 +62,7 @@ MongoDB  ◀──  Express API + AI service (documents, chunks, users, conversa
 
 ### AI service (services/ai) dependencies
 
-`fastapi`, `uvicorn[standard]`, `pydantic>=2.10`, `langchain>=0.3,<1.0`, `langchain-core`, `langchain-community`, `langchain-ollama`, `langchain-text-splitters`, `pymongo[srv]`, `pypdf`, `python-multipart`, `httpx`
+`fastapi`, `uvicorn[standard]`, `pydantic>=2.10`, `langchain>=0.3,<1.0`, `langchain-core`, `langchain-community`, `langchain-ollama`, `langchain-text-splitters`, `pymongo[srv]`, `pypdf`, `python-multipart`, `httpx`, `faster-whisper`
 
 ## Prerequisites
 
@@ -160,6 +160,16 @@ GET  /health            POST /api/query   (RAG chat)   POST /api/ingest   (docum
 
 The API and AI service authenticate to each other via the shared
 `X-AI-Key` header (`API_KEY_FOR_AI` / `AI_SERVICE_API_KEY`).
+
+### Consultation audio speech-to-text
+
+Doctor consultation audio is transcribed **on-premise** by `faster-whisper`
+(multilingual / Hinglish compatible, auto language detection — override with
+`WHISPER_MODEL` / `WHISPER_DEVICE` / `WHISPER_COMPUTE_TYPE` in `.env`). The model
+(default `small`) downloads from HuggingFace on first transcribe. During live
+recording the web UI streams captured audio to this endpoint every few seconds
+so the **Raw Consultation Transcript (STT Output)** section fills in as the
+doctor and patient speak — independent of browser speech-recognition support.
 
 ## Verification
 

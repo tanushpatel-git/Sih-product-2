@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, FileText, Save, ChevronDown, Upload, Trash2, Send } from "lucide-react";
 import DoctorSidebar from "./components/DoctorSidebar";
 import DoctorTopBar from "./components/DoctorTopBar";
+import SmartCaseHistoryView from "./components/SmartCaseHistoryView";
 import { api, ApiError, type DocumentRow, type Conversation, type Message, type AiConfig } from "../../../lib/api";
 
 const ACCEPTED = ".txt,.md,.csv,.json";
@@ -14,7 +15,7 @@ function uniqueLocalId(): string {
 
 export default function Page() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("ai-config");
+  const [activeTab, setActiveTab] = useState("case-history");
 
   // ── AI Config state ─────────────────────────────────────────────────────
   const [config, setConfig] = useState({
@@ -288,6 +289,13 @@ export default function Page() {
 
         {/* CONTENT */}
         <div className="mx-auto max-w-[1500px] px-5 py-7 sm:px-8 lg:px-10 lg:py-9">
+          {/* SMART DIGITAL PATIENT CASE HISTORY SECTION */}
+          {activeTab === "case-history" && (
+            <div className="w-full">
+              <SmartCaseHistoryView />
+            </div>
+          )}
+
           {/* AI CONFIG SECTION */}
           {activeTab === "ai-config" && (
             <div className="max-w-4xl">

@@ -16,6 +16,11 @@ import {
 
 const navigation = [
   {
+    id: "case-history",
+    label: "Smart Case History",
+    icon: Stethoscope,
+  },
+  {
     id: "conversations",
     label: "Conversations",
     icon: MessageSquare,

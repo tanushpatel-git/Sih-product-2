@@ -237,4 +237,216 @@ export const api = {
       }
       return data as MLPrediction;
     }),
+
+  // Smart Digital Patient Case History API
+  searchPatients: (q?: string) =>
+    request<{ patients: PatientProfile[] }>(`/api/case-history/patients/search${q ? `?q=${encodeURIComponent(q)}` : ""}`),
+
+  getPatientProfile: (id: string) =>
+    request<{
+      patient: PatientProfile;
+      stats: { total_consultations: number; active_medications: number; total_reports: number };
+    }>(`/api/case-history/patients/${id}/profile`),
+
+  getPatientTimeline: (id: string) =>
+    request<{
+      patient_id: string;
+      total_events: number;
+      timeline: TimelineEvent[];
+      active_medications: MedicationRecord[];
+    }>(`/api/case-history/patients/${id}/timeline`),
+
+  createConsultationWithConsent: (payload: {
+    patient_id: string;
+    doctor_id?: string;
+    patient_consent: boolean;
+    doctor_consent: boolean;
+    notes?: string;
+  }) =>
+    request<{
+      consultation: { _id: string; patient_id: string; doctor_id: string; status: string; date: string };
+      consent: { _id: string; type: string; granted_at: string; patient_consent: boolean; doctor_consent: boolean };
+    }>("/api/case-history/consultations", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  saveCaseSheet: (
+    consultationId: string,
+    payload: {
+      symptoms: string[];
+      previous_diseases_mentioned?: string[];
+      allergies?: string[];
+      diagnosis?: string | null;
+      doctors_advice: string[];
+      medications_prescribed: Array<{ name: string; dosage: string; duration: string }>;
+      follow_up_required: boolean;
+      follow_up_notes?: string | null;
+      raw_transcript?: string;
+      audio_duration?: number;
+    }
+  ) =>
+    request<{
+      success: boolean;
+      case_sheet: CaseSheet;
+      saved_medications: MedicationRecord[];
+      allergy_conflicts: Array<{ medication: string; allergy: string; severity: string; message: string }>;
+    }>(`/api/case-history/consultations/${consultationId}/case-sheet`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  uploadPatientReport: (payload: {
+    patient_id: string;
+    type: string;
+    title: string;
+    summary?: string;
+    flagged_findings?: string[];
+    date?: string;
+    file_url?: string;
+  }) =>
+    request<{ report: Record<string, unknown> }>("/api/case-history/reports", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getEmergencyDataset: (id: string, reason?: string) =>
+    request<EmergencyDataset>(
+      `/api/case-history/patients/${id}/emergency${reason ? `?reason=${encodeURIComponent(reason)}` : ""}`
+    ),
+
+  linkAbhaId: (id: string, abha_id?: string) =>
+    request<{ success: boolean; patient_id: string; abha_id: string; verified_with_abdm: boolean }>(
+      `/api/case-history/patients/${id}/abha`,
+      {
+        method: "POST",
+        body: JSON.stringify({ abha_id }),
+      }
+    ),
+
+  extractCaseSheet: (transcript: string, patient_context?: Record<string, unknown>) =>
+    request<CaseSheetExtractionResult>("/api/case-history/ai/extract", {
+      method: "POST",
+      body: JSON.stringify({ transcript, patient_context }),
+    }),
+
+  transcribeAudioFile: (audioBlob: Blob, language = "en-IN", patientName?: string) => {
+    const form = new FormData();
+    form.append("file", audioBlob, "consultation_audio.webm");
+    form.append("language", language);
+    if (patientName) form.append("patient_name", patientName);
+    return request<{ transcript: string; status: string; source?: string }>(
+      "/api/case-history/ai/transcribe-audio",
+      {
+        method: "POST",
+        body: form,
+      }
+    );
+  },
 };
+
+export interface PatientProfile {
+  id: string;
+  custom_id: string;
+  abha_id: string | null;
+  full_name: string;
+  email: string;
+  dob: string | null;
+  sex: string | null;
+  blood_type: string | null;
+  contact_phone?: string | null;
+  emergency_contact?: {
+    name?: string | null;
+    phone?: string | null;
+    relation?: string | null;
+  } | null;
+  known_allergies: string[];
+  chronic_conditions: string[];
+  createdAt?: string;
+}
+
+export interface CaseSheet {
+  _id?: string;
+  consultation_id?: string;
+  patient_id?: string;
+  doctor_id?: string;
+  symptoms: string[];
+  previous_diseases_mentioned: string[];
+  allergies: string[];
+  diagnosis: string | null;
+  doctors_advice: string[];
+  medications_prescribed: Array<{ name: string; dosage: string; duration: string }>;
+  follow_up_required: boolean;
+  follow_up_notes: string | null;
+  created_by_ai?: boolean;
+  reviewed_by_doctor?: boolean;
+  reviewed_at?: string;
+}
+
+export interface MedicationRecord {
+  id: string;
+  name: string;
+  dosage: string;
+  duration?: string;
+  active: boolean;
+  start_date: string;
+  prescribed_by?: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  eventType: "CONSULTATION" | "REPORT" | "MEDICATION_REGIMEN" | "EMERGENCY_ACCESS";
+  timestamp: string;
+  title: string;
+  doctor_name?: string;
+  status?: string;
+  transcript?: string;
+  audio_duration?: number;
+  case_sheet?: CaseSheet;
+  report_type?: string;
+  summary?: string;
+  file_url?: string;
+  flagged_findings?: string[];
+  uploaded_by_name?: string;
+  medications?: MedicationRecord[];
+}
+
+export interface EmergencyDataset {
+  emergency_access_granted: boolean;
+  audit_log_id: string;
+  timestamp: string;
+  patient: {
+    id: string;
+    abha_id: string;
+    custom_id: string;
+    full_name: string;
+    dob: string | null;
+    sex: string | null;
+    blood_type: string;
+    emergency_contact: {
+      name: string;
+      phone: string;
+      relation: string;
+    };
+    critical_allergies: string[];
+    chronic_conditions: string[];
+    active_medications: Array<{
+      name: string;
+      dosage: string;
+      duration: string;
+    }>;
+  };
+}
+
+export interface CaseSheetExtractionResult {
+  symptoms: string[];
+  previous_diseases_mentioned: string[];
+  allergies: string[];
+  diagnosis: string | null;
+  doctors_advice: string[];
+  medications_prescribed: Array<{ name: string; dosage: string; duration: string }>;
+  follow_up_required: boolean;
+  follow_up_notes: string | null;
+  extracted_from?: string;
+}
+

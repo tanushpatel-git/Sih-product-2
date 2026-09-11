@@ -29,6 +29,11 @@ class Settings:
     rag_top_k: int = int(os.getenv("RAG_TOP_K", "5"))
     embedding_dim: int = int(os.getenv("EMBEDDING_DIM", "1024"))
 
+    # Local Whisper speech-to-text (multilingual / Hinglish compatible)
+    whisper_model: str = os.getenv("WHISPER_MODEL", "small")
+    whisper_device: str = os.getenv("WHISPER_DEVICE", "cpu")
+    whisper_compute_type: str = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
+
     default_temperature: float = 0.2
     default_max_tokens: int = 512
 
